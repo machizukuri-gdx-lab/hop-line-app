@@ -1,20 +1,42 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { initLiff } from "./liff";
+import MapPage from "./pages/MapPage";
+import SpotDetailPage from "./pages/SpotDetailPage";
 
 function App() {
-  const [status, setStatus] = useState("初期化中...");
+  const [liffReady, setLiffReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     initLiff()
-      .then(() => setStatus("LIFF 初期化完了"))
-      .catch((err) => setStatus(`エラー: ${err.message}`));
+      .then(() => setLiffReady(true))
+      .catch((err: Error) => setError(err.message));
   }, []);
 
+  if (error) {
+    return (
+      <div style={{ padding: 24, textAlign: "center" }}>
+        <p>エラー: {error}</p>
+      </div>
+    );
+  }
+
+  if (!liffReady) {
+    return (
+      <div style={{ padding: 24, textAlign: "center" }}>
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h1>ホップ水やり記録</h1>
-      <p>{status}</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MapPage />} />
+        <Route path="/spot/:spotId" element={<SpotDetailPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

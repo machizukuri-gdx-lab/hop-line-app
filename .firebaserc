@@ -1,6 +1,6 @@
 {
   "projects": {
-    "default": "your-firebase-project-id",
+    "default": "hop-line-app",
     "demo": "demo-hop-line"
   }
 }

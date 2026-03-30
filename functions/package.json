@@ -12,6 +12,7 @@
     "deploy": "firebase deploy --only functions --project default"
   },
   "dependencies": {
+    "axios": "^1.7.2",
     "firebase-admin": "^12.1.0",
     "firebase-functions": "^4.7.0"
   },
