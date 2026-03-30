@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { initLiff } from "./liff";
 import MapPage from "./pages/MapPage";
 import SpotDetailPage from "./pages/SpotDetailPage";
+import ScanPage from "./pages/ScanPage";
 
 function App() {
   const [liffReady, setLiffReady] = useState(false);
@@ -35,6 +36,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MapPage />} />
         <Route path="/spot/:spotId" element={<SpotDetailPage />} />
+        <Route path="/scan" element={<ScanPage />} />
       </Routes>
     </BrowserRouter>
   );
