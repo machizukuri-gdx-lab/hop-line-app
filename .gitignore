@@ -11,6 +11,7 @@ frontend/build/
 # Environment files (secrets)
 frontend/.env.local
 frontend/.env.*.local
+frontend/.env.production
 .env.local
 functions/.env
 
