@@ -14,6 +14,7 @@ frontend/.env.*.local
 frontend/.env.production
 .env.local
 functions/.env
+functions/.env.dev
 
 # Firebase
 .firebase/

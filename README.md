@@ -20,31 +20,41 @@ Firebase Cloud Functions (API / LINE通知 / 毎日リセット)
 
 ---
 
+## 開発環境と本番環境
+
+| | 開発 | 本番 |
+|---|---|---|
+| Firebase プロジェクト | `hop-line-app-dev` | `hop-line-app` |
+| LINE LIFF ID | `2009576548-G1udlWXm` | `2009576548-euJBjiN1` |
+| LINE 通知先 | 開発グループ | 本番グループ |
+| フロントエンド | `localhost:5173` または ngrok | Render |
+
+---
+
 ## ディレクトリ構成
 
 ```
 hop-line-app/
-├── docker-compose.yml         # ローカル開発用 Docker 設定
-├── firebase.json              # Firebase / Emulator 設定
+├── firebase.json              # Firebase の設定
 ├── firestore.rules            # Firestore セキュリティルール
 ├── firestore.indexes.json     # Firestore インデックス
 ├── frontend/                  # React フロントエンド
-│   ├── Dockerfile             # ローカル開発用
 │   ├── src/
 │   │   ├── App.tsx            # ルーティング・LIFF 初期化
-│   │   ├── firebase.ts        # Firebase / Emulator 接続設定
+│   │   ├── firebase.ts        # Firebase 接続設定
 │   │   ├── liff.ts            # LIFF 初期化
 │   │   └── pages/
 │   │       ├── MapPage.tsx        # マップ画面（スポット一覧）
 │   │       ├── SpotDetailPage.tsx # スポット詳細 + 水やりボタン
 │   │       └── ScanPage.tsx       # QR スキャン画面
-│   ├── .env.local             # ローカル用環境変数（要作成・git 管理外）
+│   ├── .env.local             # 開発用 Firebase 設定（git 管理外・管理者から入手）
+│   ├── .nvmrc                 # Node.js バージョン指定
 │   └── vite.config.ts
 └── functions/                 # Cloud Functions (Node.js)
-    ├── Dockerfile             # ローカルエミュレーター用
     ├── src/
     │   └── index.ts           # recordWatering / resetDailyStatus / ping
-    └── .env                   # LINE 認証情報（要作成・git 管理外）
+    ├── .env                   # 本番用 LINE 認証情報（git 管理外・管理者から入手）
+    └── .env.dev               # 開発用 LINE 認証情報（git 管理外・管理者から入手）
 ```
 
 ---
@@ -52,8 +62,7 @@ hop-line-app/
 ## ローカル開発環境のセットアップ
 
 ### 前提条件
-- Docker Desktop がインストールされていること
-- Node.js 20 以上（`firebase deploy` 用）
+- Node.js 20 以上
 
 ### 1. リポジトリをクローン
 
@@ -62,72 +71,54 @@ git clone https://github.com/machizukuri-gdx-lab/hop-line-app.git
 cd hop-line-app
 ```
 
-### 2. 環境変数ファイルを作成
+### 2. 環境変数ファイルを入手
 
-**`frontend/.env.local`**（ローカル開発用・エミュレーターに接続）
+管理者から以下のファイルを受け取り、指定の場所に配置する。
 
-```env
-VITE_USE_EMULATOR=true
+- `frontend/.env.local` — 開発用 Firebase 設定（`hop-line-app-dev` に接続）
+- `functions/.env.dev` — 開発用 LINE Bot 認証情報（dev デプロイ時に自動で読まれる）
+- `functions/.env` — 本番用 LINE Bot 認証情報（本番デプロイ時のみ必要）
 
-VITE_FIREBASE_PROJECT_ID=demo-hop-line
-VITE_FIREBASE_API_KEY=demo-api-key
-VITE_FIREBASE_AUTH_DOMAIN=demo-hop-line.firebaseapp.com
-VITE_FIREBASE_STORAGE_BUCKET=demo-hop-line.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
-VITE_FIREBASE_APP_ID=1:000000000000:web:0000000000000000
-
-# ブラウザから Docker ホストへの接続（自分のマシンの LAN IP に変更）
-VITE_FIRESTORE_EMULATOR_HOST=192.168.xx.xx
-VITE_FUNCTIONS_EMULATOR_HOST=192.168.xx.xx
-
-# LINE LIFF ID
-VITE_LIFF_ID=2009576548-euJBjiN1
-
-# Google Maps（本番と同じキーで OK）
-VITE_GOOGLE_MAPS_API_KEY=（管理者に確認）
-VITE_GOOGLE_MAPS_MAP_ID=（管理者に確認）
-```
-
-> `VITE_FIRESTORE_EMULATOR_HOST` は `ifconfig` または `ipconfig` で確認できる LAN IP（例: `192.168.1.5`）を設定する。`localhost` は Docker コンテナ内から参照できないため使用不可。
-
-**`functions/.env`**（LINE 通知用・ローカルでは空でも動作する）
-
-```env
-LINE_CHANNEL_ACCESS_TOKEN=（管理者に確認）
-LINE_GROUP_ID=（管理者に確認）
-```
-
-### 3. Docker で起動
+### 3. フロントエンドを起動
 
 ```bash
-docker-compose up --build
+cd frontend
+npm install
+npm run dev
 ```
 
-| URL | 内容 |
-|---|---|
-| http://localhost:3000 | React アプリ |
-| http://localhost:4000 | Firebase Emulator UI |
-| http://localhost:8080 | Firestore Emulator |
-| http://localhost:5001 | Functions Emulator |
+→ http://localhost:5173 でアプリが開く
 
-### 4. テストデータを登録
+### 4. 動作確認
 
-Emulator UI（http://localhost:4000）→ Firestore → `spots` コレクションに以下を追加：
+- http://localhost:5173 → マップにスポットのピンが表示されること
+- http://localhost:5173/spot/{ドキュメントID} → 水やりボタンが動作すること
+- 水やり後、開発 LINE グループに通知が届くこと
 
-```json
-{
-  "name": "専修大学中庭",
-  "location": { "lat": 35.611, "lng": 139.543 },
-  "wateredToday": false,
-  "plantCount": 50
-}
+---
+
+## スマホ実機確認（ngrok）
+
+LINE LIFF は HTTPS が必要なため ngrok でトンネルを作る。
+
+### 初回設定
+
+```bash
+ngrok config add-authtoken 3C6XstlhY2rpCfXjwP3w2kr2wFt_5MyWv5eHctCpombMYomXB
 ```
 
-### 5. 動作確認
+### 起動手順
 
-- http://localhost:3000 → マップにピンが表示されること
-- http://localhost:3000/spot/{ドキュメントID} → 水やりボタンが動作すること
-- http://localhost:3000/scan → QR スキャン画面が表示されること（LINE 環境以外では動作しない）
+```bash
+# フロントエンドを起動したまま、別ターミナルで:
+ngrok http 3000 --url=bentlee-masklike-splendiferously.ngrok-free.dev
+```
+
+スマホの LINE アプリから開発 LIFF URL を開く：
+
+```
+https://liff.line.me/2009576548-G1udlWXm
+```
 
 ---
 
@@ -138,9 +129,8 @@ Emulator UI（http://localhost:4000）→ Firestore → `spots` コレクショ�
 GitHub の `main` ブランチにプッシュすると Render が自動デプロイする。
 Render ダッシュボードで以下の環境変数を設定すること：
 
-| 変数名 | 内容 |
+| 変数名 | 値 |
 |---|---|
-| `VITE_USE_EMULATOR` | `false` |
 | `VITE_FIREBASE_PROJECT_ID` | `hop-line-app` |
 | `VITE_FIREBASE_API_KEY` | Firebase の API キー |
 | `VITE_FIREBASE_AUTH_DOMAIN` | `hop-line-app.firebaseapp.com` |
@@ -149,15 +139,17 @@ Render ダッシュボードで以下の環境変数を設定すること：
 | `VITE_FIREBASE_APP_ID` | Firebase の App ID |
 | `VITE_LIFF_ID` | `2009576548-euJBjiN1` |
 | `VITE_GOOGLE_MAPS_API_KEY` | Google Maps API キー |
-| `VITE_GOOGLE_MAPS_MAP_ID` | Google Maps マップ ID |
+| `VITE_GOOGLE_MAPS_MAP_ID` | `7f88448be7abd496e4b388e8` |
 
-### Cloud Functions（Firebase）
+### Cloud Functions
 
 ```bash
-firebase deploy --only functions --project hop-line-app
-```
+# 開発プロジェクトにデプロイ（functions/.env.dev が自動で読まれる）
+firebase deploy --only functions --project dev
 
-`functions/.env` に `LINE_CHANNEL_ACCESS_TOKEN` と `LINE_GROUP_ID` が設定されている必要がある。
+# 本番プロジェクトにデプロイ（functions/.env が自動で読まれる）
+firebase deploy --only functions --project default
+```
 
 ---
 
@@ -199,7 +191,9 @@ firebase deploy --only functions --project hop-line-app
 ## QR コードの URL 形式
 
 ```
+# 本番
 https://liff.line.me/2009576548-euJBjiN1/spot/{spotId}
-```
 
-スポットの `spotId` は Firestore のドキュメント ID。
+# 開発
+https://liff.line.me/2009576548-G1udlWXm/spot/{spotId}
+```

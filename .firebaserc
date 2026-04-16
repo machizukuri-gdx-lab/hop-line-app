@@ -1,6 +1,6 @@
 {
   "projects": {
     "default": "hop-line-app",
-    "demo": "demo-hop-line"
+    "dev": "hop-line-app-dev"
   }
 }
