@@ -27,3 +27,6 @@ functions-debug.log
 # OS
 .DS_Store
 Thumbs.db
+
+# mkcert generated certificates
+*.pem
