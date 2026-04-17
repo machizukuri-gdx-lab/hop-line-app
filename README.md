@@ -218,7 +218,7 @@ firebase deploy --only functions --project default
 - **スマホから接続できない**
   PC と同じ Wi-Fi に接続しているか確認。LINE Developers Console の Endpoint URL が PC の LAN IP（`https://[IP]:3000`）になっているか確認。スマホに Root CA 証明書がインストールされているか確認。
 
----
+----
 
 ## QR コードの URL 形式
 
