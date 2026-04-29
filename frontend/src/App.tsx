@@ -17,27 +17,29 @@ function App() {
 
   if (error) {
     return (
-      <div style={{ padding: 24, textAlign: "center" }}>
-        <p>エラー: {error}</p>
+      <div data-theme="hop" className="min-h-screen flex items-center justify-center p-6 font-sans text-center">
+        <p className="text-red-500">エラー: {error}</p>
       </div>
     );
   }
 
   if (!liffReady) {
     return (
-      <div style={{ padding: 24, textAlign: "center" }}>
-        <p>読み込み中...</p>
+      <div data-theme="hop" className="min-h-screen flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-success"></span>
       </div>
     );
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MapPage />} />
-        <Route path="/spot/:spotId" element={<SpotDetailPage />} />
-        <Route path="/scan" element={<ScanPage />} />
-      </Routes>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <div data-theme="hop">
+        <Routes>
+          <Route path="/" element={<MapPage />} />
+          <Route path="/spot/:spotId" element={<SpotDetailPage />} />
+          <Route path="/scan" element={<ScanPage />} />
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }
