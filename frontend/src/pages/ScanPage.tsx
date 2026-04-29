@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { QrCode } from "lucide-react";
 import liff from "@line/liff";
+import { GreenHeader } from "../components/GreenHeader";
+
+const SPOT_URL_PATTERN = /\/spot\/([^/?#]+)/;
 
 function ScanPage() {
   const navigate = useNavigate();
@@ -17,14 +21,13 @@ function ScanPage() {
         setError("QR コードを読み取れませんでした。");
         return;
       }
-      // https://liff.line.me/{liffId}/spot/{spotId} または /spot/{spotId} の形式に対応
-      const match = url.match(/\/spot\/([^/?#]+)/);
+      const match = url.match(SPOT_URL_PATTERN);
       if (match) {
         navigate(`/spot/${match[1]}`);
       } else {
         setError("ホップスポットの QR コードではありません。");
       }
-    } catch (e) {
+    } catch {
       setError("スキャンがキャンセルされました。");
     } finally {
       setScanning(false);
@@ -32,60 +35,45 @@ function ScanPage() {
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>QR スキャン</h1>
-      <p style={styles.description}>
-        スポットに設置された QR コードを読み取ってください。
-      </p>
+    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
+      <GreenHeader title="QR スキャン" onBack={() => navigate("/")} />
 
-      <button
-        style={{ ...styles.scanButton, opacity: scanning ? 0.5 : 1 }}
-        onClick={handleScan}
-        disabled={scanning}
-      >
-        {scanning ? "スキャン中..." : "📷 QR コードを読み取る"}
-      </button>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 -mt-4">
+        <div className="bg-white rounded-2xl shadow-sm w-full max-w-sm p-8 text-center mb-6">
+          <div className="w-20 h-20 bg-[#d4f5e2] rounded-full flex items-center justify-center mx-auto mb-4">
+            <QrCode size={36} className="text-[#2dc75c]" />
+          </div>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            スポットに設置された QR コードを<br />読み取ってください。
+          </p>
+        </div>
 
-      {error && <p style={styles.error}>{error}</p>}
+        <button
+          className="btn w-full max-w-sm rounded-full text-white font-bold text-base py-4 bg-[#06C755] hover:bg-[#05b34c] border-none shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+          onClick={handleScan}
+          disabled={scanning}
+        >
+          {scanning ? (
+            <>
+              <span className="loading loading-spinner loading-sm"></span>
+              スキャン中...
+            </>
+          ) : (
+            <>
+              <QrCode size={18} />
+              QR コードを読み取る
+            </>
+          )}
+        </button>
+
+        {error && (
+          <div className="alert alert-error mt-4 rounded-xl w-full max-w-sm">
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    padding: 24,
-    maxWidth: 480,
-    margin: "0 auto",
-    fontFamily: "Noto Sans JP, sans-serif",
-    textAlign: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  description: {
-    fontSize: 16,
-    color: "#555",
-    marginBottom: 40,
-  },
-  scanButton: {
-    width: "100%",
-    padding: "16px 0",
-    backgroundColor: "#06C755",
-    color: "white",
-    border: "none",
-    borderRadius: 12,
-    fontSize: 18,
-    fontWeight: "bold",
-    cursor: "pointer",
-    boxShadow: "0 4px 12px rgba(6,199,85,0.4)",
-  },
-  error: {
-    marginTop: 24,
-    color: "#c0392b",
-    fontSize: 15,
-  },
-};
 
 export default ScanPage;
