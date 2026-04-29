@@ -42,7 +42,7 @@ function MapPage() {
           <AdvancedMarker
             key={spot.id}
             position={spot.location}
-            onClick={() => navigate(`/spot/${spot.id}`)}
+            onClick={() => navigate(`/spot/${spot.id}?from=map`)}
             title={spot.name}
           >
             <div

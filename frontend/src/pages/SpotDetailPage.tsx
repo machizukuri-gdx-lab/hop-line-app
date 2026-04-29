@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import liff from "@line/liff";
@@ -16,6 +16,8 @@ interface Spot {
 function SpotDetailPage() {
   const { spotId } = useParams<{ spotId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromMap = searchParams.get("from") === "map";
   const [spot, setSpot] = useState<Spot | null>(null);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -102,6 +104,11 @@ function SpotDetailPage() {
           <p>🌿 水やり完了！</p>
           <p>ありがとうございます！マップに戻ります...</p>
         </div>
+      ) : fromMap ? (
+        <div style={styles.qrHint}>
+          <p>現地のQRコードをスキャンすると</p>
+          <p>水やりを記録できます</p>
+        </div>
       ) : (
         <button
           style={{
@@ -169,6 +176,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 20,
     color: "#2dc75c",
     padding: 24,
+  },
+  qrHint: {
+    textAlign: "center",
+    fontSize: 15,
+    color: "#888",
+    padding: "24px 16px",
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
+    lineHeight: 1.8,
   },
 };
 
