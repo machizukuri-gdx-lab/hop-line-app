@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, onSnapshot } from "firebase/firestore";
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
-import { Filter, Droplet, X, QrCode } from "lucide-react";
+import { Filter, Droplet, X, QrCode, User } from "lucide-react";
 import { db } from "../firebase";
 import { Spot } from "../types/spot";
 import { WeatherIcon } from "../components/WeatherIcon";
@@ -139,15 +139,21 @@ function MapPage() {
           ))}
         </Map>
 
-        <div className="absolute top-4 left-4 right-4 z-10">
+        <div className="absolute top-4 left-4 right-4 z-10 flex gap-2">
           <button
-            className={`w-full bg-white rounded-full shadow-md px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+            className={`flex-1 bg-white rounded-full shadow-md px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
               filterUnwatered ? "text-red-500" : "text-gray-600"
             }`}
             onClick={() => setFilterUnwatered((v) => !v)}
           >
             <Filter size={15} />
             {filterUnwatered ? "未実施のみ表示中" : "水やり未実施のみ表示"}
+          </button>
+          <button
+            className="bg-white rounded-full shadow-md w-12 h-12 flex items-center justify-center shrink-0"
+            onClick={() => navigate("/mypage")}
+          >
+            <User size={18} className="text-gray-600" />
           </button>
         </div>
 

@@ -13,4 +13,5 @@ export interface Spot {
   plantCount: number;
   memo?: string;
   weather?: WeatherInfo;
+  imageUrl?: string;
 }

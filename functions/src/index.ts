@@ -11,12 +11,13 @@ interface RecordWateringData {
   spotId: string;
   displayName: string;
   isAnonymous: boolean;
+  lineUserId?: string;
 }
 
 export const recordWatering = onCall<RecordWateringData>(
   { region: "asia-northeast1" },
   async (request) => {
-    const { spotId, displayName, isAnonymous } = request.data;
+    const { spotId, displayName, isAnonymous, lineUserId } = request.data;
 
     if (!spotId) {
       throw new HttpsError("invalid-argument", "spotId is required");
@@ -36,13 +37,26 @@ export const recordWatering = onCall<RecordWateringData>(
 
     await spotRef.update({ wateredToday: true });
 
+    const points = spot.plantCount * 10;
+
     await db.collection("logs").add({
       spotId,
-      userId: request.auth?.uid ?? "anonymous",
+      spotName: spot.name,
+      pointsEarned: points,
+      userId: lineUserId ?? "anonymous",
       displayName: isAnonymous ? "匿名ユーザー" : displayName,
       isAnonymous,
       createdAt: FieldValue.serverTimestamp(),
     });
+
+    if (!isAnonymous && lineUserId) {
+      await db.collection("users").doc(lineUserId).set({
+        displayName,
+        totalPoints: FieldValue.increment(points),
+        wateredCount: FieldValue.increment(1),
+        lastWateredAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
 
     // LINE グループへ通知 (トークン未設定時はスキップ)
     const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
@@ -73,7 +87,7 @@ export const recordWatering = onCall<RecordWateringData>(
       }
     }
 
-    return { success: true };
+    return { success: true, pointsEarned: points };
   }
 );
 

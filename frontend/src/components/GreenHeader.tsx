@@ -7,34 +7,45 @@ interface Props {
   onBack: () => void;
   weather?: WeatherInfo;
   showLeaf?: boolean;
+  imageUrl?: string;
 }
 
-export function GreenHeader({ title, onBack, weather, showLeaf = false }: Props) {
+export function GreenHeader({ title, onBack, weather, showLeaf = false, imageUrl }: Props) {
   return (
-    <div className="bg-[#2dc75c] px-5 pt-5 pb-8 relative overflow-hidden">
-      <button
-        className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white mb-4"
-        onClick={onBack}
-      >
-        <ChevronLeft size={22} />
-      </button>
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white mb-1">{title}</h1>
-          <div className="flex items-center gap-3 text-white/90 text-sm">
-            <span className="flex items-center gap-1">
-              <MapPin size={12} />
-              多摩区
-            </span>
-            {weather && (
+    <div
+      className="px-5 pt-5 pb-8 relative overflow-hidden"
+      style={
+        imageUrl
+          ? { backgroundImage: `url(${imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+          : { backgroundColor: "#2dc75c" }
+      }
+    >
+      {imageUrl && <div className="absolute inset-0 bg-black/30" />}
+      <div className="relative z-10">
+        <button
+          className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white mb-4"
+          onClick={onBack}
+        >
+          <ChevronLeft size={22} />
+        </button>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-1">{title}</h1>
+            <div className="flex items-center gap-3 text-white/90 text-sm">
               <span className="flex items-center gap-1">
-                <WeatherIcon conditionCode={weather.conditionCode} size={12} />
-                {weather.description} {weather.temp}°C
+                <MapPin size={12} />
+                多摩区
               </span>
-            )}
+              {weather && (
+                <span className="flex items-center gap-1">
+                  <WeatherIcon conditionCode={weather.conditionCode} size={12} />
+                  {weather.description} {weather.temp}°C
+                </span>
+              )}
+            </div>
           </div>
+          {showLeaf && <Leaf size={48} color="white" opacity={0.5} />}
         </div>
-        {showLeaf && <Leaf size={48} color="white" opacity={0.5} />}
       </div>
     </div>
   );
