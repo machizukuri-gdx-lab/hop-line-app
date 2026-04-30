@@ -33,7 +33,6 @@ interface WateringLog {
 
 function MyPage() {
   const navigate = useNavigate();
-  const [lineUserId, setLineUserId] = useState<string | null>(null);
   const [pictureUrl, setPictureUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("");
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -44,7 +43,6 @@ function MyPage() {
     const init = async () => {
       try {
         const profile = await liff.getProfile();
-        setLineUserId(profile.userId);
         setDisplayName(profile.displayName);
         setPictureUrl(profile.pictureUrl ?? null);
 
