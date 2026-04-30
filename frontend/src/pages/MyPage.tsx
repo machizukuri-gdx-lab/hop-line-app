@@ -89,7 +89,7 @@ function MyPage() {
     <div className="min-h-screen bg-gray-50 font-sans">
       <GreenHeader title="マイページ" onBack={() => navigate("/")} />
 
-      <div className="px-4 -mt-4 space-y-4 pb-8">
+      <div className="px-4 mt-3 space-y-4 pb-8">
         {/* 会員証カード */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <p className="text-xs font-bold text-gray-400 tracking-widest mb-3">HOP SUPPORTER</p>

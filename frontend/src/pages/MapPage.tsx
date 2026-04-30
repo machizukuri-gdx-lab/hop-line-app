@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, onSnapshot } from "firebase/firestore";
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
-import { Filter, Droplet, X, QrCode, User } from "lucide-react";
+import { Filter, Droplet, X, QrCode, User, Trophy } from "lucide-react";
 import { db } from "../firebase";
 import { Spot } from "../types/spot";
 import { WeatherIcon } from "../components/WeatherIcon";
@@ -148,6 +148,12 @@ function MapPage() {
           >
             <Filter size={15} />
             {filterUnwatered ? "未実施のみ表示中" : "水やり未実施のみ表示"}
+          </button>
+          <button
+            className="bg-white rounded-full shadow-md w-12 h-12 flex items-center justify-center shrink-0"
+            onClick={() => navigate("/ranking")}
+          >
+            <Trophy size={18} className="text-gray-600" />
           </button>
           <button
             className="bg-white rounded-full shadow-md w-12 h-12 flex items-center justify-center shrink-0"
