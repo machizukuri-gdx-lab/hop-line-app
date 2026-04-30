@@ -16,7 +16,6 @@ import liff from "@line/liff";
 import {
   AlertCircle,
   Clock,
-  User,
   Check,
   Droplet,
   Leaf,
@@ -26,6 +25,7 @@ import { db, functions } from "../firebase";
 import { Spot } from "../types/spot";
 import { StatusBadge } from "../components/StatusBadge";
 import { GreenHeader } from "../components/GreenHeader";
+import { WateringLogItem } from "../components/WateringLogItem";
 
 const POINTS_PER_PLANT = 10;
 
@@ -34,19 +34,6 @@ interface WateringLog {
   displayName: string;
   isAnonymous: boolean;
   createdAt: Timestamp;
-}
-
-function formatTime(ts: Timestamp | null): string {
-  if (!ts) return "";
-  const d = ts.toDate();
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today.getTime() - 86400000);
-  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const hhmm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-  if (target.getTime() === today.getTime()) return `今日 ${hhmm}`;
-  if (target.getTime() === yesterday.getTime()) return `昨日 ${hhmm}`;
-  return `${d.getMonth() + 1}/${d.getDate()} ${hhmm}`;
 }
 
 interface ActionSectionProps {
@@ -152,14 +139,16 @@ function SpotDetailPage() {
     try {
       let displayName = "匿名ユーザー";
       let isAnonymous = false;
+      let lineUserId: string | undefined;
       try {
         const profile = await liff.getProfile();
         displayName = profile.displayName;
+        lineUserId = profile.userId;
       } catch {
         isAnonymous = true;
       }
       const recordWatering = httpsCallable(functions, "recordWatering");
-      await recordWatering({ spotId: spot.id, displayName, isAnonymous });
+      await recordWatering({ spotId: spot.id, displayName, isAnonymous, lineUserId });
       setDone(true);
     } catch (e) {
       console.error("水やり記録エラー:", e);
@@ -227,6 +216,7 @@ function SpotDetailPage() {
         onBack={() => navigate("/")}
         weather={spot.weather}
         showLeaf
+        imageUrl={spot.imageUrl}
       />
 
       <div className="px-4 -mt-4 space-y-3 pb-8">
@@ -272,13 +262,11 @@ function SpotDetailPage() {
               </div>
             ) : (
               logs.map((log) => (
-                <div key={log.id} className="flex justify-between items-center px-4 py-3">
-                  <span className="text-sm text-gray-600">{formatTime(log.createdAt)}</span>
-                  <span className="text-sm text-gray-500 flex items-center gap-1">
-                    <User size={12} />
-                    {log.isAnonymous ? "匿名さん" : `${log.displayName}さん`}
-                  </span>
-                </div>
+                <WateringLogItem
+                  key={log.id}
+                  time={log.createdAt}
+                  label={log.isAnonymous ? "匿名さん" : `${log.displayName}さん`}
+                />
               ))
             )}
             {(logs.length > 0 || showAllLogs) && (
