@@ -23,7 +23,7 @@ function App() {
 
   if (error) {
     return (
-      <div data-theme="hop" className="min-h-screen bg-white flex flex-col items-center justify-center p-10 font-sans text-center">
+      <div data-theme="hop" className="min-h-dvh bg-white flex flex-col items-center justify-center p-10 font-sans text-center">
         <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
           <Settings size={40} className="text-gray-400 animate-spin-slow" />
         </div>
@@ -44,7 +44,7 @@ function App() {
 
   if (!liffReady) {
     return (
-      <div data-theme="hop" className="min-h-screen flex items-center justify-center">
+      <div data-theme="hop" className="min-h-dvh flex items-center justify-center">
         <span className="loading loading-spinner loading-lg text-success"></span>
       </div>
     );
@@ -52,7 +52,7 @@ function App() {
 
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <div data-theme="hop" className="w-full min-h-screen bg-gray-50 relative overflow-x-hidden">
+      <div data-theme="hop" className="w-full min-h-dvh bg-gray-50 relative overflow-x-hidden">
         <Routes>
           <Route path="/" element={<MapPage />} />
           <Route path="/spot/:spotId" element={<SpotDetailPage />} />

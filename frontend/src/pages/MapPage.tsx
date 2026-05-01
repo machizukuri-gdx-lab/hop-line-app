@@ -15,7 +15,14 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
   const isRainy = spot.weather?.isRainy ?? false;
 
   return (
-    <div className="absolute bottom-28 left-4 right-4 md:left-auto md:right-6 md:bottom-24 md:w-80 bg-white rounded-2xl shadow-xl p-4 z-10">
+    <div 
+      className="absolute bg-white rounded-2xl shadow-xl p-4 z-10 w-[calc(100%-2rem)] md:w-80"
+      style={{
+        bottom: "max(7.5rem, env(safe-area-inset-bottom) + 6rem)",
+        left: "max(1rem, env(safe-area-inset-left))",
+        right: "max(1rem, env(safe-area-inset-right))",
+      }}
+    >
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
@@ -119,7 +126,7 @@ function MapPage() {
 
   return (
     <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string}>
-      <div className="relative w-screen h-screen overflow-hidden">
+      <div className="relative w-full h-dvh overflow-hidden">
         <Map
           style={{ width: "100%", height: "100%" }}
           defaultCenter={TAMA_CENTER}
@@ -139,7 +146,13 @@ function MapPage() {
           ))}
         </Map>
 
-        <div className="absolute top-4 left-4 right-4 md:right-auto md:w-96 z-10 flex gap-2">
+        <div 
+          className="absolute z-10 flex gap-2 w-[calc(100%-2rem)] md:w-96"
+          style={{ 
+            top: "max(1rem, env(safe-area-inset-top))", 
+            left: "max(1rem, env(safe-area-inset-left))" 
+          }}
+        >
           <button
             className={`flex-1 bg-white rounded-full shadow-md px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
               filterUnwatered ? "text-red-500" : "text-gray-600"
@@ -163,7 +176,13 @@ function MapPage() {
           </button>
         </div>
 
-        <div className="absolute bottom-28 left-4 md:bottom-6 md:left-6 bg-white/90 rounded-2xl shadow px-3 py-2 z-10 text-sm">
+        <div 
+          className="absolute bg-white/90 rounded-2xl shadow px-3 py-2 z-10 text-sm"
+          style={{ 
+            bottom: "max(7rem, env(safe-area-inset-bottom) + 6rem)", 
+            left: "max(1rem, env(safe-area-inset-left))" 
+          }}
+        >
           <div className="flex items-center gap-2 mb-1">
             <div className="w-5 h-5 rounded-full bg-[#2dc75c] flex items-center justify-center">
               <Droplet size={10} color="white" fill="white" />
@@ -185,9 +204,16 @@ function MapPage() {
           />
         )}
 
-        <div className="absolute bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 z-10">
+        <div 
+          className="absolute z-10 w-[calc(100%-2rem)] md:w-80"
+          style={{ 
+            bottom: "max(1.5rem, env(safe-area-inset-bottom))",
+            right: "max(1rem, env(safe-area-inset-right))",
+            left: "max(1rem, env(safe-area-inset-left))"
+          }}
+        >
           <button
-            className="w-full bg-amber-400 hover:bg-amber-500 text-white font-bold rounded-full py-4 shadow-lg flex items-center justify-center gap-3 text-base transition-colors"
+            className="w-full bg-amber-400 hover:bg-amber-500 text-white font-bold rounded-full py-4 shadow-lg flex items-center justify-center gap-3 text-base transition-colors md:ml-auto"
             onClick={() => navigate("/scan")}
           >
             <QrCode size={20} />
