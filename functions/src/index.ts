@@ -58,35 +58,6 @@ export const recordWatering = onCall<RecordWateringData>(
       }, { merge: true });
     }
 
-    // LINE グループへ通知 (トークン未設定時はスキップ)
-    const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-    const groupId = process.env.LINE_GROUP_ID;
-    if (token && groupId && !token.startsWith("your-")) {
-      try {
-        const name = isAnonymous ? "匿名ユーザー" : displayName;
-        await axios.post(
-          "https://api.line.me/v2/bot/message/push",
-          {
-            to: groupId,
-            messages: [
-              {
-                type: "text",
-                text: `${name}さんが「${spot.name}」で水やりをしました🌿`,
-              },
-            ],
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      } catch (e) {
-        console.error("LINE notification failed:", e);
-      }
-    }
-
     return { success: true, pointsEarned: points };
   }
 );
