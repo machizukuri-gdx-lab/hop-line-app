@@ -38,8 +38,8 @@ function ScanPage() {
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       <GreenHeader title="QR スキャン" onBack={() => navigate("/")} />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 -mt-4">
-        <div className="bg-white rounded-2xl shadow-sm w-full max-w-sm p-8 text-center mb-6">
+      <div className="flex-1 flex flex-col md:flex-row items-center justify-center px-6 py-6 md:gap-8 -mt-4">
+        <div className="bg-white rounded-2xl shadow-sm w-full max-w-sm p-8 text-center mb-6 md:mb-0">
           <div className="w-20 h-20 bg-[#d4f5e2] rounded-full flex items-center justify-center mx-auto mb-4">
             <QrCode size={36} className="text-[#2dc75c]" />
           </div>
@@ -48,29 +48,31 @@ function ScanPage() {
           </p>
         </div>
 
-        <button
-          className="btn w-full max-w-sm rounded-full text-white font-bold text-base py-4 bg-[#06C755] hover:bg-[#05b34c] border-none shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
-          onClick={handleScan}
-          disabled={scanning}
-        >
-          {scanning ? (
-            <>
-              <span className="loading loading-spinner loading-sm"></span>
-              スキャン中...
-            </>
-          ) : (
-            <>
-              <QrCode size={18} />
-              QR コードを読み取る
-            </>
-          )}
-        </button>
+        <div className="flex flex-col w-full max-w-sm gap-4">
+          <button
+            className="btn w-full rounded-full text-white font-bold text-base py-4 bg-[#06C755] hover:bg-[#05b34c] border-none shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+            onClick={handleScan}
+            disabled={scanning}
+          >
+            {scanning ? (
+              <>
+                <span className="loading loading-spinner loading-sm"></span>
+                スキャン中...
+              </>
+            ) : (
+              <>
+                <QrCode size={18} />
+                QR コードを読み取る
+              </>
+            )}
+          </button>
 
-        {error && (
-          <div className="alert alert-error mt-4 rounded-xl w-full max-w-sm">
-            <span className="text-sm">{error}</span>
-          </div>
-        )}
+          {error && (
+            <div className="alert alert-error rounded-xl w-full">
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
