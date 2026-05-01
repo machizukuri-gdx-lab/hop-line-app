@@ -27,7 +27,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { GreenHeader } from "../components/GreenHeader";
 import { WateringLogItem } from "../components/WateringLogItem";
 
-const POINTS_PER_PLANT = 10;
+const Hop_Points = 2;
 
 interface WateringLog {
   id: string;
@@ -191,7 +191,7 @@ function SpotDetailPage() {
         <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow mb-6">
           <p className="text-center text-gray-500 text-sm mb-2">獲得ポイント</p>
           <p className="text-center text-4xl font-bold text-amber-500">
-            +{spot.plantCount * POINTS_PER_PLANT} pt
+            +{Hop_Points} pt
           </p>
           <hr className="my-3" />
           <p className="text-center text-sm text-gray-400">水やり記録を保存しました</p>
