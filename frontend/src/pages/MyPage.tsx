@@ -87,9 +87,9 @@ function MyPage() {
     <div className="min-h-screen bg-gray-50 font-sans">
       <GreenHeader title="マイページ" onBack={() => navigate("/")} />
 
-      <div className="px-4 mt-3 space-y-4 pb-8">
+      <div className="px-4 mt-3 flex flex-col md:flex-row gap-4 pb-8 items-start">
         {/* 会員証カード */}
-        <div className="bg-white rounded-2xl shadow-sm p-5">
+        <div className="w-full md:w-1/3 bg-white rounded-2xl shadow-sm p-5">
           <p className="text-xs font-bold text-gray-400 tracking-widest mb-3">HOP SUPPORTER</p>
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
@@ -111,7 +111,7 @@ function MyPage() {
         </div>
 
         {/* 水やり履歴 */}
-        <div>
+        <div className="w-full md:w-2/3">
           <h2 className="flex items-center gap-2 font-bold text-gray-700 mb-2">
             <History size={16} />
             最近の水やり履歴
