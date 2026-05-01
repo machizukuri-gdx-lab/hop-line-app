@@ -27,7 +27,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { GreenHeader } from "../components/GreenHeader";
 import { WateringLogItem } from "../components/WateringLogItem";
 
-const POINTS_PER_PLANT = 10;
+const Hop_Points = 2;
 
 interface WateringLog {
   id: string;
@@ -191,7 +191,7 @@ function SpotDetailPage() {
         <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow mb-6">
           <p className="text-center text-gray-500 text-sm mb-2">獲得ポイント</p>
           <p className="text-center text-4xl font-bold text-amber-500">
-            +{spot.plantCount * POINTS_PER_PLANT} pt
+            +{Hop_Points} pt
           </p>
           <hr className="my-3" />
           <p className="text-center text-sm text-gray-400">水やり記録を保存しました</p>
@@ -219,38 +219,40 @@ function SpotDetailPage() {
         imageUrl={spot.imageUrl}
       />
 
-      <div className="px-4 -mt-4 space-y-3 pb-8">
-        <div className="bg-white rounded-2xl shadow-sm p-4">
-          <div className="flex justify-between items-center py-2">
-            <span className="text-gray-600">ホップ株数</span>
-            <span className="font-bold text-lg">{spot.plantCount} 株</span>
-          </div>
-          <hr />
-          <div className="flex justify-between items-center py-2 mt-1">
-            <span className="text-gray-600">本日の状況</span>
-            <StatusBadge wateredToday={spot.wateredToday} isRainy={isRainy} />
-          </div>
-        </div>
-
-        {spot.memo && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 items-start">
-            <AlertCircle size={18} className="text-amber-500 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-bold text-amber-700 text-sm">給水場所・メモ</p>
-              <p className="text-amber-600 text-sm mt-0.5">{spot.memo}</p>
+      <div className="px-4 flex flex-col md:flex-row gap-4 pb-8 items-start relative z-10 mt-2">
+        <div className="w-full md:w-1/2 space-y-3 mt-1">
+          <div className="bg-white rounded-2xl shadow-sm p-4">
+            <div className="flex justify-between items-center py-2">
+              <span className="text-gray-600">ホップ株数</span>
+              <span className="font-bold text-lg">{spot.plantCount} 株</span>
+            </div>
+            <hr />
+            <div className="flex justify-between items-center py-2 mt-1">
+              <span className="text-gray-600">本日の状況</span>
+              <StatusBadge wateredToday={spot.wateredToday} isRainy={isRainy} />
             </div>
           </div>
-        )}
 
-        <ActionSection
-          spot={spot}
-          isRainy={isRainy}
-          fromMap={fromMap}
-          loading={loading}
-          onWater={handleWater}
-        />
+          {spot.memo && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 items-start">
+              <AlertCircle size={18} className="text-amber-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-amber-700 text-sm">給水場所・メモ</p>
+                <p className="text-amber-600 text-sm mt-0.5">{spot.memo}</p>
+              </div>
+            </div>
+          )}
 
-        <div>
+          <ActionSection
+            spot={spot}
+            isRainy={isRainy}
+            fromMap={fromMap}
+            loading={loading}
+            onWater={handleWater}
+          />
+        </div>
+
+        <div className="w-full md:w-1/2">
           <h2 className="flex items-center gap-2 font-bold text-gray-700 mb-2">
             <Clock size={16} />
             水やり履歴（直近{showAllLogs ? "20" : "3"}件）
