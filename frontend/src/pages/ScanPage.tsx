@@ -50,7 +50,7 @@ function ScanPage() {
 
         <div className="flex flex-col w-full max-w-sm gap-4">
           <button
-            className="btn w-full rounded-full text-white font-bold text-base py-4 bg-[#06C755] hover:bg-[#05b34c] border-none shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+            className="btn w-full rounded-full text-white font-bold text-base bg-[#06C755] hover:bg-[#05b34c] border-none shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
             onClick={handleScan}
             disabled={scanning}
           >

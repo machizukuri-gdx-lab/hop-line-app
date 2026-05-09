@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, onSnapshot } from "firebase/firestore";
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
-import { Filter, Droplet, X, QrCode, User, Trophy } from "lucide-react";
+import { Filter, Droplet, X, QrCode, User, Trophy, MapPin } from "lucide-react";
 import { db } from "../firebase";
 import { Spot } from "../types/spot";
 import { WeatherIcon } from "../components/WeatherIcon";
@@ -29,12 +29,18 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
             <span className="font-bold text-lg">{spot.name}</span>
             <StatusBadge wateredToday={spot.wateredToday} isRainy={isRainy} />
           </div>
-          {spot.weather && (
-            <div className="flex items-center gap-1 mt-1 text-sm text-gray-500">
-              <WeatherIcon conditionCode={spot.weather.conditionCode} size={12} />
-              {spot.weather.description} {spot.weather.temp}°C
-            </div>
-          )}
+          <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+            <span className="flex items-center gap-1">
+              <MapPin size={12} />
+              {spot.area ? spot.area : ""}
+            </span>
+            {spot.weather && (
+              <span className="flex items-center gap-1">
+                <WeatherIcon conditionCode={spot.weather.conditionCode} size={12} />
+                {spot.weather.description} {spot.weather.temp}°C
+              </span>
+            )}
+          </div>
         </div>
         <button
           className="btn btn-ghost btn-sm btn-circle text-gray-400"
@@ -133,6 +139,8 @@ function MapPage() {
           defaultZoom={15}
           mapId={import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string}
           onClick={() => setSelectedSpot(null)}
+          disableDefaultUI={true}
+          gestureHandling={"greedy"}
         >
           {displayedSpots.map((spot) => (
             <AdvancedMarker
