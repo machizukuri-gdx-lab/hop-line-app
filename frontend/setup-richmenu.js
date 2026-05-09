@@ -21,8 +21,8 @@ const menuA = {
     // 各メニューボタン（仮）
     { bounds: { x: 0, y: 300, width: 1250, height: 693 }, action: { type: "uri", uri: "https://liff.line.me/2009576548-euJBjiN1/scan" } }, // 左上
     { bounds: { x: 1250, y: 300, width: 1250, height: 693 }, action: { type: "uri", uri: "https://liff.line.me/2009576548-euJBjiN1" } }, // 右上
-    { bounds: { x: 0, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "準備中" } }, // 左下
-    { bounds: { x: 1250, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "準備中" } } // 右下
+    { bounds: { x: 0, y: 993, width: 1250, height: 693 }, action: { type: "uri", uri: "https://liff.line.me/2009576548-euJBjiN1/ranking" } }, // 左下
+    { bounds: { x: 1250, y: 993, width: 1250, height: 693 }, action: { type: "uri", uri: "https://liff.line.me/2009576548-euJBjiN1/mypage" } } // 右下
   ]
 };
 
@@ -36,10 +36,10 @@ const menuB = {
     // 左タブ（基本メニュー）領域：タップで menu-a に切り替え
     { bounds: { x: 0, y: 0, width: 1250, height: 300 }, action: { type: "richmenuswitch", richMenuAliasId: "menu-a", data: "to-a" } },
     // 各メニューボタン（仮）
-    { bounds: { x: 0, y: 300, width: 1250, height: 693 }, action: { type: "message", text: "準備中" } }, // 左上
-    { bounds: { x: 1250, y: 300, width: 1250, height: 693 }, action: { type: "message", text: "準備中" } }, // 右上
-    { bounds: { x: 0, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "準備中" } }, // 左下
-    { bounds: { x: 1250, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "準備中" } } // 右下
+    { bounds: { x: 0, y: 300, width: 1250, height: 693 }, action: { type: "message", text: "準備中です！" } }, // 左上
+    { bounds: { x: 1250, y: 300, width: 1250, height: 693 }, action: { type: "message", text: "準備中です！" } }, // 右上
+    { bounds: { x: 0, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "準備中です！" } }, // 左下
+    { bounds: { x: 1250, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "準備中です！" } } // 右下
   ]
 };
 
