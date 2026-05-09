@@ -67,14 +67,14 @@ function ActionSection({ spot, isRainy, fromMap, loading, onWater }: ActionSecti
     return (
       <div className="bg-gray-100 rounded-2xl p-5 text-center">
         <p className="text-gray-500 text-sm leading-relaxed">
-          現地のQRコードをスキャンすると<br />水やりを記録できます
+          現地のQRコードを読み取ると<br />水やりを記録できます
         </p>
       </div>
     );
   }
   return (
     <button
-      className="btn w-full rounded-full text-white font-bold text-base py-4 bg-[#1a7a40] hover:bg-[#155f33] border-none shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+      className="btn w-full rounded-full text-white font-bold text-base bg-[#1a7a40] hover:bg-[#155f33] border-none shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
       onClick={onWater}
       disabled={loading}
     >
@@ -202,7 +202,7 @@ function SpotDetailPage() {
             className="btn btn-success w-full rounded-full text-white font-bold text-base"
             onClick={() => navigate("/")}
           >
-            MAPへ戻る
+            マップへ戻る
           </button>
         </div>
       </div>
@@ -215,6 +215,7 @@ function SpotDetailPage() {
         title={spot.name}
         onBack={() => navigate("/")}
         weather={spot.weather}
+        locationName={spot.area}
         showLeaf
         imageUrl={spot.imageUrl}
       />
@@ -267,7 +268,7 @@ function SpotDetailPage() {
                 <WateringLogItem
                   key={log.id}
                   time={log.createdAt}
-                  label={log.isAnonymous ? "匿名さん" : `${log.displayName}さん`}
+                  label={log.isAnonymous ? "匿名 さん" : `${log.displayName} さん`}
                 />
               ))
             )}

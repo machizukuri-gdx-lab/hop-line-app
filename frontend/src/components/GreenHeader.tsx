@@ -8,9 +8,10 @@ interface Props {
   weather?: WeatherInfo;
   showLeaf?: boolean;
   imageUrl?: string;
+  locationName?: string;
 }
 
-export function GreenHeader({ title, onBack, weather, showLeaf = false, imageUrl }: Props) {
+export function GreenHeader({ title, onBack, weather, showLeaf = false, imageUrl, locationName }: Props) {
   return (
     <div
       className="px-5 pt-5 pb-8 relative overflow-hidden"
@@ -32,10 +33,14 @@ export function GreenHeader({ title, onBack, weather, showLeaf = false, imageUrl
           <div>
             <h1 className="text-2xl font-bold text-white mb-1">{title}</h1>
             <div className="flex items-center gap-3 text-white/90 text-sm">
-              <span className="flex items-center gap-1">
-                <MapPin size={12} />
-                多摩区
-              </span>
+
+              {locationName && (
+                <span className="flex items-center gap-1">
+                  <MapPin size={12} />
+                  {locationName}
+                </span>
+              )}
+
               {weather && (
                 <span className="flex items-center gap-1">
                   <WeatherIcon conditionCode={weather.conditionCode} size={12} />

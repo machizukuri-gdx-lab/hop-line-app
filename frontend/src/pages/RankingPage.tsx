@@ -111,7 +111,7 @@ function RankingPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-gray-800 truncate">
-                      {user.displayName}
+                      {user.displayName} さん
                       {isMe && (
                         <span className="ml-1 text-xs text-[#2dc75c] font-normal">（あなた）</span>
                       )}

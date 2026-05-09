@@ -14,4 +14,5 @@ export interface Spot {
   memo?: string;
   weather?: WeatherInfo;
   imageUrl?: string;
+  area?: string;
 }
