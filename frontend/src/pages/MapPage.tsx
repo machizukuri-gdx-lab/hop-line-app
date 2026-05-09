@@ -225,7 +225,7 @@ function MapPage() {
             onClick={() => navigate("/scan")}
           >
             <QrCode size={20} />
-            QR読込で水やり記録
+            QRスキャンで水やり記録
           </button>
         </div>
       </div>
