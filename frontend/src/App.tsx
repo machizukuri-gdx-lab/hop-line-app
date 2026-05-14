@@ -10,6 +10,7 @@ import SpotDetailPage from "./pages/SpotDetailPage";
 import ScanPage from "./pages/ScanPage";
 import MyPage from "./pages/MyPage";
 import RankingPage from "./pages/RankingPage";
+import PhotosPage from "./pages/PhotosPage";
 
 function App() {
   const [liffReady, setLiffReady] = useState(false);
@@ -76,6 +77,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MapPage />} />
           <Route path="/spot/:spotId" element={<SpotDetailPage />} />
+          <Route path="/spot/:spotId/photos" element={<PhotosPage />} />
           <Route path="/scan" element={<ScanPage />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/ranking" element={<RankingPage />} />
