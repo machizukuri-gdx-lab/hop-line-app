@@ -11,11 +11,13 @@ import {
   getDocs,
   Timestamp,
 } from "firebase/firestore";
-import { User, History } from "lucide-react";
+import { User, History, Camera } from "lucide-react";
 import liff from "@line/liff";
 import { db } from "../firebase";
 import { WateringLogItem } from "../components/WateringLogItem";
 import { GreenHeader } from "../components/GreenHeader";
+import { PhotoAlbum } from "../components/PhotoAlbum";
+import { PhotoLog } from "../types/spot";
 import { formatTime } from "../utils/formatTime";
 
 interface UserData {
@@ -37,6 +39,7 @@ function MyPage() {
   const [displayName, setDisplayName] = useState<string>("");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [logs, setLogs] = useState<WateringLog[]>([]);
+  const [myPhotos, setMyPhotos] = useState<PhotoLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,6 +65,19 @@ function MyPage() {
           logsSnap.docs.map((d) => ({
             id: d.id,
             ...(d.data() as Omit<WateringLog, "id">),
+          }))
+        );
+
+        const photosQ = query(
+          collection(db, "photos"),
+          where("userId", "==", profile.userId),
+          orderBy("createdAt", "desc")
+        );
+        const photosSnap = await getDocs(photosQ);
+        setMyPhotos(
+          photosSnap.docs.map((d) => ({
+            id: d.id,
+            ...(d.data() as Omit<PhotoLog, "id">),
           }))
         );
       } catch (e) {
@@ -110,28 +126,40 @@ function MyPage() {
           </div>
         </div>
 
-        {/* 水やり履歴 */}
-        <div className="w-full md:w-2/3">
-          <h2 className="flex items-center gap-2 font-bold text-gray-700 mb-2">
-            <History size={16} />
-            最近の水やり履歴
-          </h2>
-          <div className="bg-white rounded-2xl shadow-sm divide-y">
-            {logs.length === 0 ? (
-              <div className="px-4 py-6 text-center text-gray-400 text-sm">
-                まだ水やり履歴がありません
-              </div>
-            ) : (
-              logs.map((log) => (
-                <WateringLogItem
-                  key={log.id}
-                  time={log.createdAt}
-                  label={log.spotName ?? "不明なスポット"}
-                  subLabel={formatTime(log.createdAt)}
-                  pointsEarned={log.pointsEarned}
-                />
-              ))
-            )}
+        {/* 水やり履歴 + 写真アルバム */}
+        <div className="w-full md:w-2/3 space-y-4">
+          <div>
+            <h2 className="flex items-center gap-2 font-bold text-gray-700 mb-2">
+              <History size={16} />
+              最近の水やり履歴
+            </h2>
+            <div className="bg-white rounded-2xl shadow-sm divide-y">
+              {logs.length === 0 ? (
+                <div className="px-4 py-6 text-center text-gray-400 text-sm">
+                  まだ水やり履歴がありません
+                </div>
+              ) : (
+                logs.map((log) => (
+                  <WateringLogItem
+                    key={log.id}
+                    time={log.createdAt}
+                    label={log.spotName ?? "不明なスポット"}
+                    subLabel={formatTime(log.createdAt)}
+                    pointsEarned={log.pointsEarned}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="flex items-center gap-2 font-bold text-gray-700 mb-2">
+              <Camera size={16} />
+              投稿した写真
+            </h2>
+            <div className="bg-white rounded-2xl shadow-sm p-4">
+              <PhotoAlbum photos={myPhotos} emptyMessage="まだ写真を投稿していません" />
+            </div>
           </div>
         </div>
       </div>
