@@ -11,6 +11,7 @@ interface RankingUser {
   displayName: string;
   totalPoints: number;
   wateredCount: number;
+  pictureUrl?: string;
 }
 
 function MedalBadge({ rank }: { rank: number }) {
@@ -106,8 +107,17 @@ function RankingPage() {
                   className={`flex items-center gap-3 px-4 py-3 ${isMe ? "bg-[#d4f5e2]" : ""}`}
                 >
                   <MedalBadge rank={index + 1} />
-                  <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-                    <User size={18} className="text-gray-400" />
+                  <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
+                    {user.pictureUrl ? (
+                      <img 
+                        src={user.pictureUrl} 
+                        alt={`${user.displayName}のアイコン`} 
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <User size={18} className="text-gray-400" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-gray-800 truncate">

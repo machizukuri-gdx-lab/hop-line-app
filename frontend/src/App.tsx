@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Settings } from "lucide-react";
+import liff from "@line/liff";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "./firebase";
 import { initLiff } from "./liff";
 import MapPage from "./pages/MapPage";
 import SpotDetailPage from "./pages/SpotDetailPage";
@@ -14,7 +17,24 @@ function App() {
 
   useEffect(() => {
     initLiff()
-      .then(() => setLiffReady(true))
+      .then(async () => {
+        try {
+          if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            if (profile.userId) {
+              const userRef = doc(db, "users", profile.userId);
+              await setDoc(userRef, {
+                displayName: profile.displayName,
+                pictureUrl: profile.pictureUrl || "",
+              }, { merge: true });
+              console.log("Profile Synced to Firestore");
+            }
+          }
+        } catch (profileErr) {
+          console.error("Profile sync error:", profileErr);
+        }
+        setLiffReady(true);
+      })
       .catch((err: Error) => {
         console.error("LIFF Init Error:", err);
         setError(true);
