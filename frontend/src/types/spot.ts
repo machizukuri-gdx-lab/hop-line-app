@@ -1,3 +1,15 @@
+import { Timestamp } from "firebase/firestore";
+
+export interface PhotoLog {
+  id: string;
+  spotId: string;
+  imageUrl: string;
+  userId: string;
+  displayName: string;
+  isAnonymous: boolean;
+  createdAt: Timestamp;
+}
+
 export interface WeatherInfo {
   description: string;
   temp: number;

@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -15,3 +16,4 @@ const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
 export const functions = getFunctions(app, "asia-northeast1");
+export const storage = getStorage(app);

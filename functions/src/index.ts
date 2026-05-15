@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 import axios from "axios";
 
 initializeApp();
@@ -78,6 +79,29 @@ export const resetDailyStatus = onSchedule(
 
 export const ping = onCall({ region: "asia-northeast1" }, async (_request) => {
   return { message: "pong", timestamp: new Date().toISOString() };
+});
+
+// 月1回手動実行：photosコレクションとStorageを全削除（事前にローカルへバックアップすること）
+export const cleanupPhotos = onCall({ region: "asia-northeast1" }, async () => {
+  const bucket = getStorage().bucket();
+  const photosSnap = await db.collection("photos").get();
+
+  await Promise.all(
+    photosSnap.docs.map(async (d) => {
+      const { imageUrl } = d.data() as { imageUrl: string };
+      try {
+        const decodedPath = decodeURIComponent(
+          imageUrl.split("/o/")[1].split("?")[0]
+        );
+        await bucket.file(decodedPath).delete();
+      } catch {
+        // ファイルが既に存在しない場合は無視
+      }
+      await d.ref.delete();
+    })
+  );
+
+  return { deleted: photosSnap.size };
 });
 
 const RAINY_CODES = new Set([
