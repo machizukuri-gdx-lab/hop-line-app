@@ -126,9 +126,11 @@ function MapPage() {
     });
   }, []);
 
-  const displayedSpots = filterUnwatered
+  const isInset = (s: Spot) => s.location.lat === 0 && s.location.lng === 0;
+  const displayedSpots = (filterUnwatered
     ? spots.filter((s) => !s.wateredToday)
-    : spots;
+    : spots
+  ).filter((s) => !isInset(s));
 
   return (
     <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string}>
@@ -184,11 +186,11 @@ function MapPage() {
           </button>
         </div>
 
-        <div 
+        <div
           className="absolute bg-white/90 rounded-2xl shadow px-3 py-2 z-10 text-sm"
-          style={{ 
-            bottom: "max(7rem, env(safe-area-inset-bottom) + 6rem)", 
-            left: "max(1rem, env(safe-area-inset-left))" 
+          style={{
+            bottom: "max(5.5rem, env(safe-area-inset-bottom) + 4rem)",
+            left: "max(1rem, env(safe-area-inset-left))"
           }}
         >
           <div className="flex items-center gap-2 mb-1">
@@ -212,9 +214,20 @@ function MapPage() {
           />
         )}
 
-        <div 
+        <button
+          className="absolute z-10 w-14 h-14 rounded-2xl overflow-hidden shadow-lg"
+          style={{
+            bottom: "max(5.5rem, env(safe-area-inset-bottom) + 4rem)",
+            right: "max(1rem, env(safe-area-inset-right))",
+          }}
+          onClick={() => navigate("/spots")}
+        >
+          <img src="/pict.png" alt="スポット一覧" className="w-full h-full object-cover" />
+        </button>
+
+        <div
           className="absolute z-10 w-[calc(100%-2rem)] md:w-80"
-          style={{ 
+          style={{
             bottom: "max(1.5rem, env(safe-area-inset-bottom))",
             right: "max(1rem, env(safe-area-inset-right))",
             left: "max(1rem, env(safe-area-inset-left))"

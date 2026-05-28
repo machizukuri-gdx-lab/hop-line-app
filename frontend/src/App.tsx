@@ -11,6 +11,7 @@ import ScanPage from "./pages/ScanPage";
 import MyPage from "./pages/MyPage";
 import RankingPage from "./pages/RankingPage";
 import PhotosPage from "./pages/PhotosPage";
+import InsetSpotsPage from "./pages/InsetSpotsPage";
 
 function App() {
   const [liffReady, setLiffReady] = useState(false);
@@ -81,6 +82,7 @@ function App() {
           <Route path="/scan" element={<ScanPage />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/ranking" element={<RankingPage />} />
+          <Route path="/spots" element={<InsetSpotsPage />} />
         </Routes>
       </div>
     </BrowserRouter>
