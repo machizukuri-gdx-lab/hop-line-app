@@ -13,5 +13,17 @@ export default defineConfig(async ({ command }) => {
       host: true,
       port: 3000,
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            "vendor-react": ["react", "react-dom", "react-router-dom"],
+            "vendor-firebase": ["firebase/app", "firebase/firestore", "firebase/storage", "firebase/functions"],
+            "vendor-maps": ["@vis.gl/react-google-maps"],
+            "vendor-liff": ["@line/liff"],
+          },
+        },
+      },
+    },
   };
 });
