@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, onSnapshot } from "firebase/firestore";
-import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
-import { Filter, Droplet, X, QrCode, User, Trophy, MapPin } from "lucide-react";
+import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
+import { Filter, Droplet, X, QrCode, User, Trophy, MapPin, Navigation } from "lucide-react";
 import { db } from "../firebase";
 import { Spot } from "../types/spot";
 import { WeatherIcon } from "../components/WeatherIcon";
 import { StatusBadge } from "../components/StatusBadge";
 
-const TAMA_CENTER = { lat: 35.6118, lng: 139.5432 };
+const TAMA_CENTER = { lat: 35.621792, lng: 139.553156 };
 
 function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
 
   return (
     <div 
-      className="absolute bg-white rounded-2xl shadow-xl p-4 z-10 w-[calc(100%-2rem)] md:w-80"
+      className="absolute bg-white rounded-2xl shadow-xl p-4 z-20 w-[calc(100%-2rem)] md:w-80"
       style={{
         bottom: "max(7.5rem, env(safe-area-inset-bottom) + 6rem)",
         left: "max(1rem, env(safe-area-inset-left))",
@@ -109,10 +109,44 @@ function MapMarker({ spot }: { spot: Spot }) {
   );
 }
 
+function CurrentLocationControl({
+  onLocation,
+}: {
+  onLocation: (loc: { lat: number; lng: number }) => void;
+}) {
+  const map = useMap();
+
+  const handleClick = () => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        onLocation(loc);
+        map?.panTo(loc);
+        map?.setZoom(16);
+      },
+      () => alert("位置情報を取得できませんでした。設定から許可してください。")
+    );
+  };
+
+  return (
+    <button
+      className="absolute z-10 bg-white rounded-full shadow-md w-12 h-12 flex items-center justify-center"
+      style={{
+        top: "max(5rem, env(safe-area-inset-top) + 4rem)",
+        right: "max(1rem, env(safe-area-inset-right))",
+      }}
+      onClick={handleClick}
+    >
+      <Navigation size={18} className="text-gray-600" />
+    </button>
+  );
+}
+
 function MapPage() {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
   const [filterUnwatered, setFilterUnwatered] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -138,7 +172,7 @@ function MapPage() {
         <Map
           style={{ width: "100%", height: "100%" }}
           defaultCenter={TAMA_CENTER}
-          defaultZoom={15}
+          defaultZoom={13}
           mapId={import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string}
           onClick={() => setSelectedSpot(null)}
           disableDefaultUI={true}
@@ -154,7 +188,30 @@ function MapPage() {
               <MapMarker spot={spot} />
             </AdvancedMarker>
           ))}
+          {currentLocation && (
+            <AdvancedMarker position={currentLocation} zIndex={10}>
+              <div style={{
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                backgroundColor: "rgba(45, 199, 92, 0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <div style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: "50%",
+                  backgroundColor: "white",
+                  border: "2.5px solid #2dc75c",
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                }} />
+              </div>
+            </AdvancedMarker>
+          )}
         </Map>
+        <CurrentLocationControl onLocation={setCurrentLocation} />
 
         <div 
           className="absolute z-10 flex gap-2 w-[calc(100%-2rem)] md:w-96"
@@ -189,7 +246,7 @@ function MapPage() {
         <div
           className="absolute bg-white/90 rounded-2xl shadow px-3 py-2 z-10 text-sm"
           style={{
-            bottom: "max(5.5rem, env(safe-area-inset-bottom) + 4rem)",
+            bottom: "max(7rem, env(safe-area-inset-bottom) + 5.5rem)",
             left: "max(1rem, env(safe-area-inset-left))"
           }}
         >
@@ -217,7 +274,7 @@ function MapPage() {
         <button
           className="absolute z-10 w-14 h-14 rounded-2xl overflow-hidden shadow-lg"
           style={{
-            bottom: "max(5.5rem, env(safe-area-inset-bottom) + 4rem)",
+            bottom: "max(7rem, env(safe-area-inset-bottom) + 5.5rem)",
             right: "max(1rem, env(safe-area-inset-right))",
           }}
           onClick={() => navigate("/spots")}
