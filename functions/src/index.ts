@@ -38,7 +38,7 @@ export const recordWatering = onCall<RecordWateringData>(
 
     await spotRef.update({ wateredToday: true });
 
-    const points = spot.plantCount * 10;
+    const points = 2;
 
     await db.collection("logs").add({
       spotId,

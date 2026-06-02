@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   doc,
@@ -22,6 +22,7 @@ import { formatTime } from "../utils/formatTime";
 
 interface UserData {
   displayName: string;
+  pictureUrl?: string;
   totalPoints: number;
   wateredCount: number;
 }
@@ -35,8 +36,6 @@ interface WateringLog {
 
 function MyPage() {
   const navigate = useNavigate();
-  const [pictureUrl, setPictureUrl] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState<string>("");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [logs, setLogs] = useState<WateringLog[]>([]);
   const [myPhotos, setMyPhotos] = useState<PhotoLog[]>([]);
@@ -46,8 +45,6 @@ function MyPage() {
     const init = async () => {
       try {
         const profile = await liff.getProfile();
-        setDisplayName(profile.displayName);
-        setPictureUrl(profile.pictureUrl ?? null);
 
         const userSnap = await getDoc(doc(db, "users", profile.userId));
         if (userSnap.exists()) {
@@ -99,6 +96,32 @@ function MyPage() {
 
   const totalPoints = userData?.totalPoints ?? 0;
 
+  let avatarContent: ReactNode;
+  if (userData?.pictureUrl) {
+    avatarContent = <img src={userData.pictureUrl} alt="profile" className="w-full h-full object-cover" />;
+  } else {
+    avatarContent = <User size={32} className="text-gray-400" />;
+  }
+
+  let logsContent: ReactNode;
+  if (logs.length === 0) {
+    logsContent = (
+      <div className="px-4 py-6 text-center text-gray-400 text-sm">
+        まだ水やり履歴がありません
+      </div>
+    );
+  } else {
+    logsContent = logs.map((log) => (
+      <WateringLogItem
+        key={log.id}
+        time={log.createdAt}
+        label={log.spotName ?? "不明なスポット"}
+        subLabel={formatTime(log.createdAt)}
+        pointsEarned={log.pointsEarned}
+      />
+    ));
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <GreenHeader title="マイページ" onBack={() => navigate("/")} />
@@ -110,18 +133,14 @@ function MyPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-2xl font-bold text-gray-800 truncate">
-                {displayName || "未設定"} さん
+                {userData?.displayName || "未設定"} さん
               </p>
               <p className="text-3xl font-bold text-amber-500 mt-2">
                 {totalPoints.toLocaleString()} pt
               </p>
             </div>
             <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 shrink-0 flex items-center justify-center">
-              {pictureUrl ? (
-                <img src={pictureUrl} alt="profile" className="w-full h-full object-cover" />
-              ) : (
-                <User size={32} className="text-gray-400" />
-              )}
+              {avatarContent}
             </div>
           </div>
         </div>
@@ -134,21 +153,7 @@ function MyPage() {
               最近の水やり履歴
             </h2>
             <div className="bg-white rounded-2xl shadow-sm divide-y">
-              {logs.length === 0 ? (
-                <div className="px-4 py-6 text-center text-gray-400 text-sm">
-                  まだ水やり履歴がありません
-                </div>
-              ) : (
-                logs.map((log) => (
-                  <WateringLogItem
-                    key={log.id}
-                    time={log.createdAt}
-                    label={log.spotName ?? "不明なスポット"}
-                    subLabel={formatTime(log.createdAt)}
-                    pointsEarned={log.pointsEarned}
-                  />
-                ))
-              )}
+              {logsContent}
             </div>
           </div>
 

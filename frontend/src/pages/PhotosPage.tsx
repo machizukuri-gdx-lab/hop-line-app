@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   collection,
@@ -7,10 +7,11 @@ import {
   orderBy,
   getDocs,
 } from "firebase/firestore";
-import { ChevronLeft, Camera } from "lucide-react";
+import { Camera } from "lucide-react";
 import { db } from "../firebase";
 import { PhotoLog } from "../types/spot";
 import { PhotoAlbum } from "../components/PhotoAlbum";
+import { GreenHeader } from "../components/GreenHeader";
 
 function PhotosPage() {
   const { spotId } = useParams<{ spotId: string }>();
@@ -38,30 +39,30 @@ function PhotosPage() {
       .finally(() => setLoading(false));
   }, [spotId]);
 
+  let pageContent: ReactNode;
+  if (loading) {
+    pageContent = (
+      <div className="flex justify-center py-12">
+        <span className="loading loading-spinner loading-lg text-success" />
+      </div>
+    );
+  } else if (photos.length === 0) {
+    pageContent = (
+      <div className="text-center py-12 text-gray-400">
+        <Camera size={40} className="mx-auto mb-3 opacity-40" />
+        <p>写真がありません</p>
+      </div>
+    );
+  } else {
+    pageContent = <PhotoAlbum photos={photos} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <div className="bg-white shadow-sm px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)}>
-          <ChevronLeft size={24} className="text-gray-700" />
-        </button>
-        <h1 className="font-bold text-gray-800">投稿写真一覧</h1>
-      </div>
-
+      <GreenHeader title="投稿写真一覧" onBack={() => navigate(-1)} />
       <div className="p-4">
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <span className="loading loading-spinner loading-lg text-success" />
-          </div>
-        ) : photos.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <Camera size={40} className="mx-auto mb-3 opacity-40" />
-            <p>写真がありません</p>
-          </div>
-        ) : (
-          <PhotoAlbum photos={photos} />
-        )}
+        {pageContent}
       </div>
-
     </div>
   );
 }
