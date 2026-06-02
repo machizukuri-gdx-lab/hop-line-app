@@ -18,7 +18,7 @@ function InsetSpotsPage() {
         id: doc.id,
         ...(doc.data() as Omit<Spot, "id">),
       }));
-      setSpots(all.filter((s) => s.location.lat === 0 && s.location.lng === 0));
+      setSpots(all.filter((s) => s.location?.lat === 0 && s.location?.lng === 0));
     });
   }, []);
 

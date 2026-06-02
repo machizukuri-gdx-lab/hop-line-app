@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { QrCode } from "lucide-react";
 import liff from "@line/liff";
@@ -34,6 +34,23 @@ function ScanPage() {
     }
   };
 
+  let buttonContent: ReactNode;
+  if (scanning) {
+    buttonContent = (
+      <>
+        <span className="loading loading-spinner loading-sm"></span>
+        スキャン中...
+      </>
+    );
+  } else {
+    buttonContent = (
+      <>
+        <QrCode size={18} />
+        QR コードを読み取る
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       <GreenHeader title="QR スキャン" onBack={() => navigate("/")} />
@@ -54,17 +71,7 @@ function ScanPage() {
             onClick={handleScan}
             disabled={scanning}
           >
-            {scanning ? (
-              <>
-                <span className="loading loading-spinner loading-sm"></span>
-                スキャン中...
-              </>
-            ) : (
-              <>
-                <QrCode size={18} />
-                QR コードを読み取る
-              </>
-            )}
+            {buttonContent}
           </button>
 
           {error && (
