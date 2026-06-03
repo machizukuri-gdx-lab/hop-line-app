@@ -12,14 +12,15 @@ interface Props {
 }
 
 export function GreenHeader({ title, onBack, weather, showLeaf = false, imageUrl, locationName }: Props) {
+  let containerStyle: { [key: string]: string } = { backgroundColor: "#2dc75c" };
+  if (imageUrl) {
+    containerStyle = { backgroundImage: `url(${imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" };
+  }
+
   return (
     <div
       className="px-5 pt-5 pb-8 relative overflow-hidden"
-      style={
-        imageUrl
-          ? { backgroundImage: `url(${imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
-          : { backgroundColor: "#2dc75c" }
-      }
+      style={containerStyle}
     >
       {imageUrl && <div className="absolute inset-0 bg-black/30" />}
       <div className="relative z-10">

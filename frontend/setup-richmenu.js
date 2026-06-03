@@ -1,11 +1,16 @@
 // setup-richmenu.js
 import fs from 'fs';
 
-const LINE_ACCESS_TOKEN = 'sMfXReU85VZK4Llu4aFSuou5tGaBBza8S838av3soUb0WqW83mEn/HtanaFIZJHUUwZ0GzJyENPA8v4BLHNfb1gZVlIXsWfFB8tCorD4yz/sy+3m6311aisL1URsQPFd8YHYDbgTpA2aIo2W5dD3nQdB04t89/1O/w1cDnyilFU=';
+const LINE_ACCESS_TOKEN = process.env.LINE_ACCESS_TOKEN;
+if (!LINE_ACCESS_TOKEN) {
+  console.error("❌ LINE_ACCESS_TOKEN が設定されていません。");
+  console.error("   実行方法: node --env-file=../functions/.env setup-richmenu.js");
+  process.exit(1);
+}
 
 // --- 設定 ---
 // ※画像がPNGの場合は 'image/png' に変更してください
-const IMAGE_TYPE = 'image/png'; 
+const IMAGE_TYPE = 'image/png';
 const IMAGE_A_PATH = './image-a.png'; // 基本メニューの画像
 const IMAGE_B_PATH = './image-b.png'; // 情報・ヘルプの画像
 

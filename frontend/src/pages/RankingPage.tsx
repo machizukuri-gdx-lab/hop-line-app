@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { User } from "lucide-react";
@@ -88,53 +88,67 @@ function RankingPage() {
     );
   }
 
+  let listContent: ReactNode;
+  if (users.length === 0) {
+    listContent = (
+      <div className="px-4 py-8 text-center text-gray-400 text-sm">
+        まだランキングデータがありません
+      </div>
+    );
+  } else {
+    listContent = users.map((user, index) => {
+      const isMe = user.id === myUserId;
+
+      let rowBg = "";
+      if (isMe) rowBg = "bg-[#d4f5e2]";
+
+      let avatarContent: ReactNode;
+      if (user.pictureUrl) {
+        avatarContent = (
+          <img
+            src={user.pictureUrl}
+            alt={`${user.displayName}のアイコン`}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        );
+      } else {
+        avatarContent = <User size={18} className="text-gray-400" />;
+      }
+
+      return (
+        <div
+          key={user.id}
+          className={`flex items-center gap-3 px-4 py-3 ${rowBg}`}
+        >
+          <MedalBadge rank={index + 1} />
+          <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
+            {avatarContent}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-gray-800 truncate">
+              {user.displayName} さん
+              {isMe && (
+                <span className="ml-1 text-xs text-[#2dc75c] font-normal">（あなた）</span>
+              )}
+            </p>
+            <p className="text-xs text-gray-400">{user.wateredCount ?? 0} 回</p>
+          </div>
+          <p className="text-amber-500 font-bold text-base shrink-0">
+            {(user.totalPoints ?? 0).toLocaleString()} pt
+          </p>
+        </div>
+      );
+    });
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <GreenHeader title="ランキング" onBack={() => navigate("/")} />
 
       <div className="px-4 mt-3 pb-8">
         <div className="bg-white rounded-2xl shadow-sm divide-y overflow-hidden">
-          {users.length === 0 ? (
-            <div className="px-4 py-8 text-center text-gray-400 text-sm">
-              まだランキングデータがありません
-            </div>
-          ) : (
-            users.map((user, index) => {
-              const isMe = user.id === myUserId;
-              return (
-                <div
-                  key={user.id}
-                  className={`flex items-center gap-3 px-4 py-3 ${isMe ? "bg-[#d4f5e2]" : ""}`}
-                >
-                  <MedalBadge rank={index + 1} />
-                  <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
-                    {user.pictureUrl ? (
-                      <img 
-                        src={user.pictureUrl} 
-                        alt={`${user.displayName}のアイコン`} 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <User size={18} className="text-gray-400" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-800 truncate">
-                      {user.displayName} さん
-                      {isMe && (
-                        <span className="ml-1 text-xs text-[#2dc75c] font-normal">（あなた）</span>
-                      )}
-                    </p>
-                    <p className="text-xs text-gray-400">{user.wateredCount ?? 0} 回</p>
-                  </div>
-                  <p className="text-amber-500 font-bold text-base shrink-0">
-                    {(user.totalPoints ?? 0).toLocaleString()} pt
-                  </p>
-                </div>
-              );
-            })
-          )}
+          {listContent}
         </div>
       </div>
     </div>

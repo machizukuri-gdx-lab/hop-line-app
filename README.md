@@ -3,7 +3,6 @@
 LINE LIFF を使ったホップ水やり記録アプリ。
 スポットの QR コードをスキャンして水やりや写真を記録し、ポイントを獲得できる。
 
----
 
 ## アーキテクチャ
 
@@ -25,7 +24,6 @@ Firebase Cloud Functions (API / スケジュール)
 |---|---|---|
 | Firebase プロジェクト | `hop-line-app-dev` | `hop-line-app` |
 | LINE LIFF ID | `2009576548-G1udlWXm` | `2009576548-euJBjiN1` |
-| LINE 通知先 | 開発グループ | 本番グループ |
 | フロントエンド | `https://localhost:3000`（mkcert で自動 HTTPS） | Render |
 
 ---
@@ -39,33 +37,39 @@ hop-line-app/
 ├── firestore.indexes.json     # Firestore インデックス
 ├── storage.rules              # Firebase Storage セキュリティルール
 ├── frontend/                  # React フロントエンド
-│   ├── src/
-│   │   ├── App.tsx            # ルーティング・LIFF 初期化
-│   │   ├── firebase.ts        # Firebase 接続設定
-│   │   ├── liff.ts            # LIFF 初期化
-│   │   ├── pages/
-│   │   │   ├── MapPage.tsx        # マップ画面（スポット一覧）
-│   │   │   ├── SpotDetailPage.tsx # スポット詳細・水やり・写真投稿
-│   │   │   ├── PhotosPage.tsx     # スポットの全写真一覧
-│   │   │   ├── MyPage.tsx         # マイページ（ポイント・履歴・写真）
-│   │   │   └── RankingPage.tsx    # ランキング画面
-│   │   └── components/
-│   │       ├── PhotoAlbum.tsx     # 写真グリッド＋ライトボックス
-│   │       ├── SuccessScreen.tsx  # 水やり/写真投稿完了画面
-│   │       ├── GreenHeader.tsx    # 共通ヘッダー
-│   │       ├── StatusBadge.tsx    # 水やり状態バッジ
-│   │       └── WateringLogItem.tsx# 水やり履歴アイテム
-│   ├── .env.local             # 開発用 Firebase 設定（先輩から入手）
-│   ├── .nvmrc                 # Node.js バージョン指定
-│   └── vite.config.ts
+│   ├── setup-richmenu.js      # LINE リッチメニューのセットアップスクリプト
+│   ├── reset-richmenu.js      # LINE リッチメニューの全削除スクリプト
+│   └── src/
+│       ├── App.tsx            # ルーティング・LIFF 初期化・ユーザープロフィール同期
+│       ├── firebase.ts        # Firebase 接続設定
+│       ├── liff.ts            # LIFF 初期化
+│       ├── types/
+│       │   └── spot.ts            # Spot / PhotoLog / WeatherInfo 型定義
+│       ├── utils/
+│       │   └── formatTime.ts      # Timestamp を「今日 HH:mm」形式に変換
+│       ├── pages/
+│       │   ├── MapPage.tsx        # マップ画面（スポット一覧）
+│       │   ├── SpotDetailPage.tsx # スポット詳細・水やり・写真投稿
+│       │   ├── PhotosPage.tsx     # スポットの全写真一覧
+│       │   ├── ScanPage.tsx       # QR コードスキャン画面（liff.scanCodeV2）
+│       │   ├── InsetSpotsPage.tsx # 個人の家で育てているホップスポット一覧
+│       │   ├── MyPage.tsx         # マイページ（ポイント・履歴・写真）
+│       │   └── RankingPage.tsx    # ランキング画面
+│       └── components/
+│           ├── PhotoAlbum.tsx     # 写真グリッド＋ライトボックス
+│           ├── SuccessScreen.tsx  # 水やり/写真投稿完了画面
+│           ├── GreenHeader.tsx    # 共通ヘッダー
+│           ├── StatusBadge.tsx    # 水やり状態バッジ
+│           ├── WeatherIcon.tsx    # OpenWeatherMapコードに対応する天気アイコン
+│           └── WateringLogItem.tsx# 水やり履歴アイテム
 └── functions/                 # Cloud Functions (Node.js)
     ├── src/
     │   └── index.ts           # 各 Cloud Functions の実装
-    ├── .env                   # 本番用 LINE 認証情報・APIキー（先輩から入手）
-    └── .env.dev               # 開発用 LINE 認証情報・APIキー（先輩から入手）
+    ├── .env                   # 本番用 APIキー（先輩から入手）
+    └── .env.dev               # 開発用 APIキー（先輩から入手）
 ```
 
----
+
 
 ## ローカル開発環境のセットアップ
 
@@ -81,18 +85,34 @@ cd hop-line-app
 
 ### 2. 環境変数ファイルを入手
 
-先輩から以下のファイルを受け取り、指定の場所に配置する。
+先輩から以下の3ファイルを受け取り、指定の場所に配置する。
 
-- `frontend/.env.local` — 開発用 Firebase 設定（`hop-line-app-dev` に接続）
-- `functions/.env.dev` — 開発用 LINE Bot 認証情報・OpenWeatherMap APIキー
-- `functions/.env` — 本番用 LINE Bot 認証情報・OpenWeatherMap APIキー（本番デプロイ時のみ必要）
+| ファイル | 用途 | 必要なタイミング |
+|---|---|---|
+| `frontend/.env.local` | 開発用 Firebase 接続設定 | ローカル開発時 |
+| `functions/.env.dev` | 開発用 APIキー | ローカル開発・開発デプロイ時 |
+| `functions/.env` | 本番用 APIキー | 本番デプロイ時 |
 
-`functions/.env.dev` に必要なキー：
-```
-LINE_CHANNEL_ACCESS_TOKEN=xxxx
-LINE_GROUP_ID=xxxx
-OPENWEATHER_API_KEY=xxxx
-```
+`frontend/.env.local` に含まれるキー：
+
+| キー | 用途 |
+|---|---|
+| `VITE_FIREBASE_PROJECT_ID` | Firebase プロジェクト ID（開発用） |
+| `VITE_FIREBASE_API_KEY` | Firebase API キー（開発用） |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth ドメイン（開発用） |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase Storage バケット（開発用） |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase Sender ID（開発用） |
+| `VITE_FIREBASE_APP_ID` | Firebase App ID（開発用） |
+| `VITE_LIFF_ID` | LINE LIFF ID（開発用） |
+| `VITE_GOOGLE_MAPS_API_KEY` | Google Maps API キー |
+| `VITE_GOOGLE_MAPS_MAP_ID` | Google Maps マップ ID |
+
+`functions/.env` / `functions/.env.dev` に含まれるキー：
+
+| キー | 用途 |
+|---|---|
+| `OPENWEATHER_API_KEY` | OpenWeatherMap 天気取得（Cloud Functions で使用） |
+| `LINE_ACCESS_TOKEN` | LINE リッチメニュー操作（セットアップスクリプトで使用） |
 
 ### 3. フロントエンドを起動
 
@@ -108,11 +128,11 @@ npm run dev
 
 - https://localhost:3000 → マップにスポットのピンが表示されること
 - https://localhost:3000/spot/{ドキュメントID} → 水やりボタンが動作すること
-- 水やり後、開発 LINE グループに通知が届くこと
+- https://localhost:3000/scan → QR スキャン画面が表示されること
 
----
 
 ## スマホ実機確認
+
 ### LINE Developers Console の設定（初回のみ）
 
 [LINE Developers Console](https://developers.line.biz/console/) で開発用 LIFF のエンドポイント URL を変更する。
@@ -129,7 +149,6 @@ ipconfig getifaddr en0
 ```
 
 ### スマホに Root CA 証明書をインストール（初回のみ）
-
 
 ```bash
 # Root CA の場所を確認（ファイルマネージャで開く）
@@ -153,7 +172,6 @@ open "$(ls ~/Library/Application\ Support/vite-plugin-mkcert/)"
 https://liff.line.me/2009576548-G1udlWXm
 ```
 
----
 
 ## 本番デプロイ
 
@@ -162,29 +180,32 @@ https://liff.line.me/2009576548-G1udlWXm
 GitHub の `main` ブランチにプッシュすると Render が自動デプロイする。
 Render ダッシュボードで以下の環境変数を設定すること：
 
-| 変数名 | 値 |
+| 変数名 | 説明 |
 |---|---|
-| `VITE_FIREBASE_PROJECT_ID` | `hop-line-app` |
-| `VITE_FIREBASE_API_KEY` | Firebase の API キー |
-| `VITE_FIREBASE_AUTH_DOMAIN` | `hop-line-app.firebaseapp.com` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | `hop-line-app.firebasestorage.app` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase の Sender ID |
-| `VITE_FIREBASE_APP_ID` | Firebase の App ID |
-| `VITE_LIFF_ID` | `2009576548-euJBjiN1` |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase プロジェクト ID（本番用） |
+| `VITE_FIREBASE_API_KEY` | Firebase API キー（本番用） |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth ドメイン（本番用） |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase Storage バケット（本番用） |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase Sender ID（本番用） |
+| `VITE_FIREBASE_APP_ID` | Firebase App ID（本番用） |
+| `VITE_LIFF_ID` | LINE LIFF ID（本番用） |
 | `VITE_GOOGLE_MAPS_API_KEY` | Google Maps API キー |
-| `VITE_GOOGLE_MAPS_MAP_ID` | `7f88448be7abd496e4b388e8` |
+| `VITE_GOOGLE_MAPS_MAP_ID` | Google Maps マップ ID |
 
-### Cloud Functions / Storage rules / Firestore indexes
+### Cloud Functions
 
 ```bash
-# 本番プロジェクトにデプロイ
+# Functions のみデプロイ（ロジック変更時）
+firebase deploy --only functions --project default
+
+# Functions・Storage・インデックスをまとめてデプロイ
 firebase deploy --only functions,storage,firestore:indexes --project default
 
 # 開発プロジェクトにデプロイ
 firebase deploy --only functions,storage,firestore:indexes --project dev
 ```
 
----
+
 
 ## Firestore データ構造
 
@@ -207,6 +228,9 @@ firebase deploy --only functions,storage,firestore:indexes --project dev
   }
 }
 ```
+
+- `location` は必須フィールド。欠損するとマップ画面がクラッシュする。
+- 位置情報が未設定のスポットは `location: { lat: 0, lng: 0 }` で保存し、マップには表示せず `/spots` ページ（`InsetSpotsPage`）で一覧表示する。
 
 ### `logs/{logId}`
 ```json
@@ -237,25 +261,66 @@ firebase deploy --only functions,storage,firestore:indexes --project dev
 ```json
 {
   "displayName": "田中さん",
-  "totalPoints": 42,
-  "wateredCount": 8,
+  "pictureUrl": "https://profile.line-scdn.net/...",
+  "totalPoints": 10,
+  "wateredCount": 3,
   "lastWateredAt": "Timestamp"
 }
 ```
 
----
+`displayName` と `pictureUrl` は LIFF ログイン時に自動で同期される。
+
+
+
+## ポイント仕様
+
+| アクション | ポイント | 処理場所 |
+|---|---|---|
+| 水やり | 2 pt | Cloud Functions (`recordWatering`) |
+| 写真投稿 | 1 pt | フロントエンド（直接 Firestore に書き込み） |
+
+- 水やりは1スポット1日1回のみ記録可能。
+- 写真はログインユーザーのみ1スポット1日1枚・スポット合計3枚まで。匿名ユーザーは枚数制限なし。
+
+
 
 ## Cloud Functions
 
 | 関数名 | トリガー | 内容 |
 |---|---|---|
-| `recordWatering` | onCall (asia-northeast1) | 水やり記録・ログ追加・ポイント付与・LINE グループ通知 |
+| `recordWatering` | onCall (asia-northeast1) | 水やり記録・ログ追加・ポイント付与（2pt） |
 | `resetDailyStatus` | onSchedule (毎日 JST 0:00) | 全スポットの `wateredToday` を `false` にリセット |
 | `fetchWeatherForSpots` | onSchedule (毎時 JST) | OpenWeatherMap で全スポットの天気を取得・保存 |
 | `cleanupPhotos` | onCall（月次手動実行） | photos コレクションと Storage の写真を全削除 |
 | `ping` | onCall | 疎通確認用 |
 
----
+
+
+## LINE リッチメニュー
+
+2 タブ構成のリッチメニューを採用している。
+
+| タブ | エイリアス | ボタン |
+|---|---|---|
+| 基本メニュー | `menu-a` | QR スキャン / マップ / ランキング / マイページ |
+| 情報・ヘルプ | `menu-b` | 水やりの仕方 / 写真の撮り方 / 使い方 / ラボ・ホップとは |
+
+### セットアップ手順
+
+```bash
+cd frontend
+
+# 既存のリッチメニューを全削除（再セットアップ時）
+node --env-file=../functions/.env reset-richmenu.js
+
+# 画像（image-a.png / image-b.png）を frontend/ に配置してから実行
+node --env-file=../functions/.env setup-richmenu.js
+```
+
+- `LINE_ACCESS_TOKEN` は `functions/.env` から読み込む（Node.js 20 以上が必要）。
+- トークンを再発行した場合は `functions/.env` と `functions/.env.dev` の両方を更新し、チームに共有すること。
+
+
 
 ## 運用メモ
 
@@ -282,16 +347,19 @@ Storage のコストを抑えるため、月に1回手動で写真を削除す�
 - **Cloud Build の権限エラー（ビルドが失敗する）**
   Google Cloud Console → IAM と管理 → IAM → `{プロジェクト番号}@cloudbuild.gserviceaccount.com` を検索 → 「Cloud Build サービスアカウント（roles/cloudbuild.builds.builder）」ロールを付与。
 
-- **水やり通知が本番グループに届く（開発デプロイ時）**
-  `functions/.env.dev` に開発用 `LINE_GROUP_ID` が設定されているか確認。`--project dev` でデプロイしているか確認。
-
 - **スマホから接続できない**
   PC と同じ Wi-Fi に接続しているか確認。LINE Developers Console の Endpoint URL が PC の LAN IP（`https://[IP]:3000`）になっているか確認。スマホに Root CA 証明書がインストールされているか確認。
 
 - **Firestore インデックスエラー（The query requires an index）**
   `firestore.indexes.json` にインデックスが定義されているか確認し、`firebase deploy --only firestore:indexes --project [dev|default]` でデプロイする。インデックスのビルドには数分かかる。
 
-----
+- **QR スキャンが動作しない**
+  `liff.scanCodeV2()` は LIFF ブラウザ内でのみ動作する。PC ブラウザからは動作しないため、スマホの LINE アプリから開くこと。
+
+- **リッチメニュースクリプトが `LINE_ACCESS_TOKEN が設定されていません` で失敗する**
+  `functions/.env` に `LINE_ACCESS_TOKEN=xxx` が記載されているか確認する。記載済みの場合は `functions/` ディレクトリからではなく `frontend/` ディレクトリから実行しているか確認する。
+
+
 
 ## QR コードの URL 形式
 
