@@ -24,7 +24,7 @@ function InsetSpotsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <GreenHeader title="スポット一覧" onBack={() => navigate("/")} />
+      <GreenHeader title="その他（有志）" onBack={() => navigate("/")} />
 
       <div className="p-4 space-y-3">
         {spots.map((spot) => (

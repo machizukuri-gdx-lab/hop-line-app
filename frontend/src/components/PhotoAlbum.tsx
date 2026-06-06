@@ -61,7 +61,7 @@ export function PhotoAlbum({ photos, emptyMessage = "まだ写真がありませ
           className="max-w-full max-h-[75vh] object-contain"
         />
         <div className="mt-4 text-center px-6">
-          <p className="text-white font-bold text-sm">{authorName}</p>
+          <p className="text-white font-bold text-sm">{authorName} さん</p>
           <p className="text-white/60 text-xs mt-1">
             {formatTime(selectedPhoto.createdAt)}
           </p>
