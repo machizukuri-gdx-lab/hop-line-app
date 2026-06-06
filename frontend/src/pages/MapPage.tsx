@@ -18,7 +18,7 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
     <div
       className="absolute bg-white rounded-2xl shadow-xl p-4 z-20 w-[calc(100%-2rem)] md:w-80"
       style={{
-        bottom: "max(7.5rem, env(safe-area-inset-bottom) + 6rem)",
+        bottom: "max(7rem, env(safe-area-inset-bottom) + 6rem)",
         left: "max(1rem, env(safe-area-inset-left))",
         right: "max(1rem, env(safe-area-inset-right))",
       }}
@@ -294,7 +294,7 @@ function MapPage() {
           }}
           onClick={() => navigate("/spots")}
         >
-          <img src="/pict.png" alt="スポット一覧" className="w-full h-full object-cover" />
+          <img src="/pict.png" alt="その他（有志）" className="w-full h-full object-cover" />
         </button>
 
         <div
