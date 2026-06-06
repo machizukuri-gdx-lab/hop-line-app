@@ -18,7 +18,7 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
     <div
       className="absolute bg-white rounded-2xl shadow-xl p-4 z-20 w-[calc(100%-2rem)] md:w-80"
       style={{
-        bottom: "max(7rem, env(safe-area-inset-bottom) + 6rem)",
+        bottom: "max(7rem, env(safe-area-inset-bottom) + 5.5rem)",
         left: "max(1rem, env(safe-area-inset-left))",
         right: "max(1rem, env(safe-area-inset-right))",
       }}
