@@ -230,7 +230,11 @@ function SpotDetailPage() {
       })
       .catch((e) => console.error("写真取得エラー:", e));
 
-    const allQ = query(collection(db, "photos"), where("spotId", "==", spotId));
+    const allQ = query(
+      collection(db, "photos"),
+      where("spotId", "==", spotId),
+      where("createdAt", ">=", Timestamp.fromDate(todayStart))
+    );
     const unsubscribe = onSnapshot(allQ, (snap) => {
       setAllPhotosCount(snap.size);
     });
