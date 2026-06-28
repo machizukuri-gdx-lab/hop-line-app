@@ -272,14 +272,14 @@ function MapPage() {
         )}
 
         <button
-          className="absolute z-10 w-14 h-14 rounded-2xl overflow-hidden shadow-lg"
+          className="absolute z-10 w-12 h-12 rounded-2xl shadow-lg bg-white flex items-center justify-center text-gray-600 font-medium text-sm font-sans"
           style={{
             bottom: "max(7rem, env(safe-area-inset-bottom) + 5.5rem)",
             right: "max(1rem, env(safe-area-inset-right))",
           }}
           onClick={() => navigate("/spots")}
         >
-          <img src="/pict.png" alt="スポット一覧" className="w-full h-full object-cover" />
+          その他
         </button>
 
         <div
