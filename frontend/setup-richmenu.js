@@ -1,11 +1,16 @@
 // setup-richmenu.js
 import fs from 'fs';
 
-const LINE_ACCESS_TOKEN = 'sMfXReU85VZK4Llu4aFSuou5tGaBBza8S838av3soUb0WqW83mEn/HtanaFIZJHUUwZ0GzJyENPA8v4BLHNfb1gZVlIXsWfFB8tCorD4yz/sy+3m6311aisL1URsQPFd8YHYDbgTpA2aIo2W5dD3nQdB04t89/1O/w1cDnyilFU=';
+const LINE_ACCESS_TOKEN = process.env.LINE_ACCESS_TOKEN;
+if (!LINE_ACCESS_TOKEN) {
+  console.error("❌ LINE_ACCESS_TOKEN が設定されていません。");
+  console.error("   実行方法: node --env-file=../functions/.env setup-richmenu.js");
+  process.exit(1);
+}
 
 // --- 設定 ---
 // ※画像がPNGの場合は 'image/png' に変更してください
-const IMAGE_TYPE = 'image/png'; 
+const IMAGE_TYPE = 'image/png';
 const IMAGE_A_PATH = './image-a.png'; // 基本メニューの画像
 const IMAGE_B_PATH = './image-b.png'; // 情報・ヘルプの画像
 
@@ -36,10 +41,10 @@ const menuB = {
     // 左タブ（基本メニュー）領域：タップで menu-a に切り替え
     { bounds: { x: 0, y: 0, width: 1250, height: 300 }, action: { type: "richmenuswitch", richMenuAliasId: "menu-a", data: "to-a" } },
     // 各メニューボタン（仮）
-    { bounds: { x: 0, y: 300, width: 1250, height: 693 }, action: { type: "message", text: "水やりの仕方" } }, // 左上（水やりの仕方）
-    { bounds: { x: 1250, y: 300, width: 1250, height: 693 }, action: { type: "message", text: "写真の撮り方" } }, // 右上（写真の撮り方）
-    { bounds: { x: 0, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "ホップとは" } }, // 左下（ホップとは）
-    { bounds: { x: 1250, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "Comming Soon..." } } // 右下（Comming Soon...）
+    { bounds: { x: 0, y: 300, width: 1250, height: 693 }, action: { type: "message", text: "水やりの仕方" } }, // 左上
+    { bounds: { x: 1250, y: 300, width: 1250, height: 693 }, action: { type: "message", text: "写真の撮り方" } }, // 右上
+    { bounds: { x: 0, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "使い方" } }, // 左下
+    { bounds: { x: 1250, y: 993, width: 1250, height: 693 }, action: { type: "message", text: "ラボ・ホップとは" } } // 右下
   ]
 };
 

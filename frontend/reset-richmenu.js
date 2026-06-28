@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const TOKEN = "sMfXReU85VZK4Llu4aFSuou5tGaBBza8S838av3soUb0WqW83mEn/HtanaFIZJHUUwZ0GzJyENPA8v4BLHNfb1gZVlIXsWfFB8tCorD4yz/sy+3m6311aisL1URsQPFd8YHYDbgTpA2aIo2W5dD3nQdB04t89/1O/w1cDnyilFU=";
+const TOKEN = process.env.LINE_ACCESS_TOKEN;
+if (!TOKEN) {
+  console.error("❌ LINE_ACCESS_TOKEN が設定されていません。");
+  console.error("   実行方法: node --env-file=../functions/.env reset-richmenu.js");
+  process.exit(1);
+}
 const headers = { Authorization: `Bearer ${TOKEN}` };
 
 async function resetAll() {

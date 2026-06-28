@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   doc,
@@ -72,6 +72,25 @@ function ActionSection({
   onWater,
   onPhotoPress,
 }: ActionSectionProps) {
+  let photoButtonLabel = "写真を投稿する";
+  if (userPostedToday) {
+    photoButtonLabel = "本日の写真は投稿済みです";
+  } else if (allPhotosCount >= MAX_PHOTOS_PER_SPOT) {
+    photoButtonLabel = "写真は3枚までです";
+  }
+
+  let photoButtonContent: ReactNode;
+  if (photoUploading) {
+    photoButtonContent = <span className="loading loading-spinner loading-sm"></span>;
+  } else {
+    photoButtonContent = (
+      <>
+        <Camera size={18} />
+        {photoButtonLabel}
+      </>
+    );
+  }
+
   if (isRainy) {
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center">
@@ -81,6 +100,7 @@ function ActionSection({
       </div>
     );
   }
+
   if (spot.wateredToday) {
     return (
       <div className="flex flex-col gap-3">
@@ -95,23 +115,13 @@ function ActionSection({
             onClick={onPhotoPress}
             disabled={photoUploading || photosAtLimit}
           >
-            {photoUploading ? (
-              <span className="loading loading-spinner loading-sm"></span>
-            ) : (
-              <>
-                <Camera size={18} />
-                {userPostedToday
-                  ? "本日の写真は投稿済みです"
-                  : allPhotosCount >= MAX_PHOTOS_PER_SPOT
-                  ? "写真は3枚までです"
-                  : "写真を投稿する"}
-              </>
-            )}
+            {photoButtonContent}
           </button>
         )}
       </div>
     );
   }
+
   if (fromMap) {
     return (
       <div className="bg-gray-100 rounded-2xl p-5 text-center">
@@ -121,6 +131,19 @@ function ActionSection({
       </div>
     );
   }
+
+  let waterButtonContent: ReactNode;
+  if (loading) {
+    waterButtonContent = <span className="loading loading-spinner loading-sm"></span>;
+  } else {
+    waterButtonContent = (
+      <>
+        <Droplet size={18} fill="white" />
+        水やりを記録する
+      </>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <button
@@ -128,32 +151,14 @@ function ActionSection({
         onClick={onWater}
         disabled={loading || photoUploading}
       >
-        {loading ? (
-          <span className="loading loading-spinner loading-sm"></span>
-        ) : (
-          <>
-            <Droplet size={18} fill="white" />
-            水やりを記録する
-          </>
-        )}
+        {waterButtonContent}
       </button>
       <button
         className="btn w-full rounded-full text-white font-bold text-base bg-[#2563eb] hover:bg-[#1d4ed8] border-none shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
         onClick={onPhotoPress}
         disabled={loading || photoUploading || photosAtLimit}
       >
-        {photoUploading ? (
-          <span className="loading loading-spinner loading-sm"></span>
-        ) : (
-          <>
-            <Camera size={18} />
-            {userPostedToday
-              ? "本日の写真は投稿済みです"
-              : allPhotosCount >= MAX_PHOTOS_PER_SPOT
-              ? "写真は3枚までです"
-              : "写真を投稿する"}
-          </>
-        )}
+        {photoButtonContent}
       </button>
     </div>
   );
@@ -176,6 +181,13 @@ function SpotDetailPage() {
   const [photoDone, setPhotoDone] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [lineProfile, setLineProfile] = useState<{ displayName: string; userId: string } | null>(null);
+
+  useEffect(() => {
+    liff.getProfile()
+      .then((p) => setLineProfile({ displayName: p.displayName, userId: p.userId }))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!spotId) return;
@@ -190,11 +202,14 @@ function SpotDetailPage() {
 
   useEffect(() => {
     if (!spotId) return;
+    let logLimit = 3;
+    if (showAllLogs) logLimit = 20;
+
     const q = query(
       collection(db, "logs"),
       where("spotId", "==", spotId),
       orderBy("createdAt", "desc"),
-      limit(showAllLogs ? 20 : 3)
+      limit(logLimit)
     );
     getDocs(q)
       .then((snap) => {
@@ -239,47 +254,34 @@ function SpotDetailPage() {
       setAllPhotosCount(snap.size);
     });
 
-    // 自分が今日このスポットに投稿済みかリアルタイム監視
-    // cleanupPhotos 実行後もページリロード不要で即座に反映される
     let unsubscribeUser: (() => void) | undefined;
-    liff.getProfile()
-      .then((profile) => {
-        const myTodayQ = query(
-          collection(db, "photos"),
-          where("spotId", "==", spotId),
-          where("userId", "==", profile.userId),
-          where("createdAt", ">=", Timestamp.fromDate(todayStart)),
-          orderBy("createdAt", "desc"),
-          limit(1)
-        );
-        unsubscribeUser = onSnapshot(myTodayQ, (snap) => {
-          setUserPostedToday(!snap.empty);
-        });
-      })
-      .catch(() => {
-        // 匿名ユーザーは1日1回制限なし
+    if (lineProfile) {
+      const myTodayQ = query(
+        collection(db, "photos"),
+        where("spotId", "==", spotId),
+        where("userId", "==", lineProfile.userId),
+        where("createdAt", ">=", Timestamp.fromDate(todayStart)),
+        orderBy("createdAt", "desc"),
+        limit(1)
+      );
+      unsubscribeUser = onSnapshot(myTodayQ, (snap) => {
+        setUserPostedToday(!snap.empty);
       });
+    }
 
     return () => {
       unsubscribe();
       unsubscribeUser?.();
     };
-  }, [spotId]);
+  }, [spotId, lineProfile]);
 
   const handleWater = async () => {
     if (!spot || loading) return;
     setLoading(true);
     try {
-      let displayName = "匿名ユーザー";
-      let isAnonymous = false;
-      let lineUserId: string | undefined;
-      try {
-        const profile = await liff.getProfile();
-        displayName = profile.displayName;
-        lineUserId = profile.userId;
-      } catch {
-        isAnonymous = true;
-      }
+      const displayName = lineProfile?.displayName ?? "匿名ユーザー";
+      const isAnonymous = !lineProfile;
+      const lineUserId = lineProfile?.userId;
       const recordWatering = httpsCallable(functions, "recordWatering");
       await recordWatering({ spotId: spot.id, displayName, isAnonymous, lineUserId });
       setDone(true);
@@ -310,16 +312,21 @@ function SpotDetailPage() {
     setPhotoModalOpen(false);
     setPhotoUploading(true);
     try {
-      let displayName = "匿名ユーザー";
-      let isAnonymous = false;
-      let userId = "anonymous";
-      try {
-        const profile = await liff.getProfile();
-        displayName = profile.displayName;
-        userId = profile.userId;
-      } catch {
-        isAnonymous = true;
+      let resolvedProfile = lineProfile;
+      if (!resolvedProfile && liff.isLoggedIn()) {
+        try {
+          const p = await liff.getProfile();
+          resolvedProfile = { displayName: p.displayName, userId: p.userId };
+          setLineProfile(resolvedProfile);
+        } catch {
+          alert("プロフィール情報の取得に失敗しました。再度お試しください。");
+          setPhotoUploading(false);
+          return;
+        }
       }
+      const displayName = resolvedProfile?.displayName ?? "匿名ユーザー";
+      const isAnonymous = !resolvedProfile;
+      const userId = resolvedProfile?.userId ?? "anonymous";
 
       const timestamp = Date.now();
       const storageRef = ref(storage, `spots/${spot.id}/${timestamp}_${userId}`);
@@ -413,6 +420,33 @@ function SpotDetailPage() {
     );
   }
 
+  let logCountText = "3";
+  if (showAllLogs) logCountText = "20";
+
+  let toggleLogsText = "さらに表示";
+  if (showAllLogs) toggleLogsText = "折りたたむ";
+
+  let logsListContent: ReactNode;
+  if (logs.length === 0) {
+    logsListContent = (
+      <div className="px-4 py-5 text-center text-gray-400 text-sm">
+        まだ履歴がありません
+      </div>
+    );
+  } else {
+    logsListContent = logs.map((log) => {
+      let logLabel = `${log.displayName} さん`;
+      if (log.isAnonymous) logLabel = "匿名 さん";
+      return (
+        <WateringLogItem
+          key={log.id}
+          time={log.createdAt}
+          label={logLabel}
+        />
+      );
+    });
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <GreenHeader
@@ -466,28 +500,16 @@ function SpotDetailPage() {
           <div>
             <h2 className="flex items-center gap-2 font-bold text-gray-700 mb-2">
               <Clock size={16} />
-              水やり履歴（直近{showAllLogs ? "20" : "3"}件）
+              水やり履歴（直近{logCountText}件）
             </h2>
             <div className="bg-white rounded-2xl shadow-sm divide-y">
-              {logs.length === 0 ? (
-                <div className="px-4 py-5 text-center text-gray-400 text-sm">
-                  まだ履歴がありません
-                </div>
-              ) : (
-                logs.map((log) => (
-                  <WateringLogItem
-                    key={log.id}
-                    time={log.createdAt}
-                    label={log.isAnonymous ? "匿名 さん" : `${log.displayName} さん`}
-                  />
-                ))
-              )}
+              {logsListContent}
               {(logs.length > 0 || showAllLogs) && (
                 <button
                   className="w-full py-3 text-center text-[#2dc75c] font-medium text-sm hover:bg-gray-50"
                   onClick={() => setShowAllLogs((v) => !v)}
                 >
-                  {showAllLogs ? "折りたたむ" : "さらに表示"}
+                  {toggleLogsText}
                 </button>
               )}
             </div>

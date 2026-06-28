@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, onSnapshot } from "firebase/firestore";
 import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
@@ -15,10 +15,10 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
   const isRainy = spot.weather?.isRainy ?? false;
 
   return (
-    <div 
+    <div
       className="absolute bg-white rounded-2xl shadow-xl p-4 z-20 w-[calc(100%-2rem)] md:w-80"
       style={{
-        bottom: "max(7.5rem, env(safe-area-inset-bottom) + 6rem)",
+        bottom: "max(7rem, env(safe-area-inset-bottom) + 5.5rem)",
         left: "max(1rem, env(safe-area-inset-left))",
         right: "max(1rem, env(safe-area-inset-right))",
       }}
@@ -32,7 +32,7 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
           <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
             <span className="flex items-center gap-1">
               <MapPin size={12} />
-              {spot.area ? spot.area : ""}
+              {spot.area}
             </span>
             {spot.weather && (
               <span className="flex items-center gap-1">
@@ -61,7 +61,20 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
 
 function MapMarker({ spot }: { spot: Spot }) {
   const isRainy = spot.weather?.isRainy ?? false;
-  const color = isRainy ? "#6b7280" : spot.wateredToday ? "#2dc75c" : "#ef4444";
+
+  let color = "#ef4444";
+  if (isRainy) {
+    color = "#6b7280";
+  } else if (spot.wateredToday) {
+    color = "#2dc75c";
+  }
+
+  let markerIcon: ReactNode;
+  if (spot.wateredToday) {
+    markerIcon = <Droplet size={14} fill="white" />;
+  } else {
+    markerIcon = <X size={14} strokeWidth={3} />;
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
@@ -80,11 +93,7 @@ function MapMarker({ spot }: { spot: Spot }) {
         }}
       >
         <div style={{ transform: "rotate(45deg)", color: "white" }}>
-          {spot.wateredToday ? (
-            <Droplet size={14} fill="white" />
-          ) : (
-            <X size={14} strokeWidth={3} />
-          )}
+          {markerIcon}
         </div>
       </div>
       <div
@@ -160,11 +169,19 @@ function MapPage() {
     });
   }, []);
 
-  const isInset = (s: Spot) => s.location.lat === 0 && s.location.lng === 0;
-  const displayedSpots = (filterUnwatered
-    ? spots.filter((s) => !s.wateredToday)
-    : spots
-  ).filter((s) => !isInset(s));
+  const isInset = (s: Spot) => !s.location || (s.location.lat === 0 && s.location.lng === 0);
+
+  let filteredSpots = spots;
+  if (filterUnwatered) {
+    filteredSpots = spots.filter((s) => !s.wateredToday);
+  }
+  const displayedSpots = filteredSpots.filter((s) => !isInset(s));
+
+  let filterTextColor = "text-gray-600";
+  if (filterUnwatered) filterTextColor = "text-red-500";
+
+  let filterButtonText = "水やり未実施のみ表示";
+  if (filterUnwatered) filterButtonText = "未実施のみ表示中";
 
   return (
     <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string}>
@@ -213,21 +230,19 @@ function MapPage() {
         </Map>
         <CurrentLocationControl onLocation={setCurrentLocation} />
 
-        <div 
+        <div
           className="absolute z-10 flex gap-2 w-[calc(100%-2rem)] md:w-96"
-          style={{ 
-            top: "max(1rem, env(safe-area-inset-top))", 
-            left: "max(1rem, env(safe-area-inset-left))" 
+          style={{
+            top: "max(1rem, env(safe-area-inset-top))",
+            left: "max(1rem, env(safe-area-inset-left))"
           }}
         >
           <button
-            className={`flex-1 bg-white rounded-full shadow-md px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
-              filterUnwatered ? "text-red-500" : "text-gray-600"
-            }`}
+            className={`flex-1 bg-white rounded-full shadow-md px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${filterTextColor}`}
             onClick={() => setFilterUnwatered((v) => !v)}
           >
             <Filter size={15} />
-            {filterUnwatered ? "未実施のみ表示中" : "水やり未実施のみ表示"}
+            {filterButtonText}
           </button>
           <button
             className="bg-white rounded-full shadow-md w-12 h-12 flex items-center justify-center shrink-0"
