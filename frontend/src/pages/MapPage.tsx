@@ -62,19 +62,11 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
 function MapMarker({ spot }: { spot: Spot }) {
   const isRainy = spot.weather?.isRainy ?? false;
 
-  let color = "#ef4444";
-  if (isRainy) {
-    color = "#6b7280";
-  } else if (spot.wateredToday) {
-    color = "#2dc75c";
-  }
-
-  let markerIcon: ReactNode;
-  if (spot.wateredToday) {
-    markerIcon = <Droplet size={14} fill="white" />;
-  } else {
-    markerIcon = <X size={14} strokeWidth={3} />;
-  }
+  const effectivelyDone = isRainy || spot.wateredToday;
+  const color = effectivelyDone ? "#2dc75c" : "#ef4444";
+  const markerIcon: ReactNode = effectivelyDone
+    ? <Droplet size={14} fill="white" />
+    : <X size={14} strokeWidth={3} />;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
