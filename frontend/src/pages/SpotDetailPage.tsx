@@ -23,7 +23,6 @@ import {
   Check,
   Droplet,
   Leaf,
-  CloudRain,
   Camera,
   X,
   Images,
@@ -91,17 +90,7 @@ function ActionSection({
     );
   }
 
-  if (isRainy) {
-    return (
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center">
-        <CloudRain size={40} className="text-blue-400 mx-auto mb-3" />
-        <p className="font-bold text-blue-700 text-lg">今日は雨のため水やり不要です</p>
-        <p className="text-blue-500 text-sm mt-1">恵みの雨！</p>
-      </div>
-    );
-  }
-
-  if (spot.wateredToday) {
+  if (spot.wateredToday || isRainy) {
     return (
       <div className="flex flex-col gap-3">
         <div className="bg-[#d4f5e2] border border-[#2dc75c]/30 rounded-2xl p-5 text-center">
