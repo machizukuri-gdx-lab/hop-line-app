@@ -104,6 +104,71 @@ export const cleanupPhotos = onCall({ region: "asia-northeast1" }, async () => {
   return { deleted: photosSnap.size };
 });
 
+const MAX_PHOTOS_PER_SPOT = 4;
+const MAX_USER_PHOTOS_PER_SPOT = 2;
+
+interface UploadPhotoData {
+  spotId: string;
+  imageUrl: string;
+  displayName: string;
+  isAnonymous: boolean;
+  lineUserId?: string;
+}
+
+export const uploadPhoto = onCall<UploadPhotoData>(
+  { region: "asia-northeast1" },
+  async (request) => {
+    const { spotId, imageUrl, displayName, isAnonymous, lineUserId } = request.data;
+
+    if (!spotId || !imageUrl) {
+      throw new HttpsError("invalid-argument", "spotId and imageUrl are required");
+    }
+
+    const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    jstNow.setHours(0, 0, 0, 0);
+    const todayStartUTC = new Date(jstNow.getTime() - 9 * 60 * 60 * 1000);
+
+    const photosRef = db.collection("photos");
+
+    const allSnap = await photosRef
+      .where("spotId", "==", spotId)
+      .where("createdAt", ">=", todayStartUTC)
+      .get();
+    if (allSnap.size >= MAX_PHOTOS_PER_SPOT) {
+      throw new HttpsError("resource-exhausted", `このスポットの写真は1日最大${MAX_PHOTOS_PER_SPOT}枚までです。`);
+    }
+
+    if (!isAnonymous && lineUserId) {
+      const userSnap = await photosRef
+        .where("spotId", "==", spotId)
+        .where("userId", "==", lineUserId)
+        .where("createdAt", ">=", todayStartUTC)
+        .get();
+      if (userSnap.size >= MAX_USER_PHOTOS_PER_SPOT) {
+        throw new HttpsError("resource-exhausted", `本日はすでに${MAX_USER_PHOTOS_PER_SPOT}枚投稿済みです。`);
+      }
+    }
+
+    const photoRef = await photosRef.add({
+      spotId,
+      imageUrl,
+      userId: lineUserId ?? "anonymous",
+      displayName: isAnonymous ? "匿名ユーザー" : displayName,
+      isAnonymous,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    if (!isAnonymous && lineUserId) {
+      await db.collection("users").doc(lineUserId).set(
+        { displayName, totalPoints: FieldValue.increment(1) },
+        { merge: true }
+      );
+    }
+
+    return { success: true, photoId: photoRef.id };
+  }
+);
+
 const RAINY_CODES = new Set([
   200, 201, 202, 210, 211, 212, 221, 230, 231, 232,
   300, 301, 302, 310, 311, 312, 313, 314, 321,

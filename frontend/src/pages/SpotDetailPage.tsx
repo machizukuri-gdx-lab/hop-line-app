@@ -10,9 +10,6 @@ import {
   limit,
   getDocs,
   Timestamp,
-  addDoc,
-  setDoc,
-  increment,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { httpsCallable } from "firebase/functions";
@@ -36,8 +33,8 @@ import { PhotoAlbum } from "../components/PhotoAlbum";
 import { SuccessScreen } from "../components/SuccessScreen";
 
 const Hop_Points = 2;
-const Hop_Photo_Points = 1;
-const MAX_PHOTOS_PER_SPOT = 3;
+const MAX_PHOTOS_PER_SPOT = 4;
+const MAX_USER_PHOTOS_PER_SPOT = 2;
 
 interface WateringLog {
   id: string;
@@ -71,25 +68,6 @@ function ActionSection({
   onWater,
   onPhotoPress,
 }: ActionSectionProps) {
-  let photoButtonLabel = "写真を投稿する";
-  if (userPostedToday) {
-    photoButtonLabel = "本日の写真は投稿済みです";
-  } else if (allPhotosCount >= MAX_PHOTOS_PER_SPOT) {
-    photoButtonLabel = "写真は3枚までです";
-  }
-
-  let photoButtonContent: ReactNode;
-  if (photoUploading) {
-    photoButtonContent = <span className="loading loading-spinner loading-sm"></span>;
-  } else {
-    photoButtonContent = (
-      <>
-        <Camera size={18} />
-        {photoButtonLabel}
-      </>
-    );
-  }
-
   if (spot.wateredToday || isRainy) {
     return (
       <div className="flex flex-col gap-3">
@@ -104,7 +82,18 @@ function ActionSection({
             onClick={onPhotoPress}
             disabled={photoUploading || photosAtLimit}
           >
-            {photoButtonContent}
+            {photoUploading ? (
+              <span className="loading loading-spinner loading-sm"></span>
+            ) : (
+              <>
+                <Camera size={18} />
+                {userPostedToday
+                  ? "本日の写真は投稿済みです"
+                  : allPhotosCount >= MAX_PHOTOS_PER_SPOT
+                  ? `写真は${MAX_PHOTOS_PER_SPOT}枚までです`
+                  : "写真を投稿する"}
+              </>
+            )}
           </button>
         )}
       </div>
@@ -147,7 +136,18 @@ function ActionSection({
         onClick={onPhotoPress}
         disabled={loading || photoUploading || photosAtLimit}
       >
-        {photoButtonContent}
+        {photoUploading ? (
+          <span className="loading loading-spinner loading-sm"></span>
+        ) : (
+          <>
+            <Camera size={18} />
+            {userPostedToday
+              ? "本日の写真は投稿済みです"
+              : allPhotosCount >= MAX_PHOTOS_PER_SPOT
+              ? `写真は${MAX_PHOTOS_PER_SPOT}枚までです`
+              : "写真を投稿する"}
+          </>
+        )}
       </button>
     </div>
   );
@@ -166,7 +166,7 @@ function SpotDetailPage() {
   const [showAllLogs, setShowAllLogs] = useState(false);
   const [todayPhotos, setTodayPhotos] = useState<PhotoLog[]>([]);
   const [allPhotosCount, setAllPhotosCount] = useState(0);
-  const [userPostedToday, setUserPostedToday] = useState(false);
+  const [userPhotoCount, setUserPhotoCount] = useState(0);
   const [photoDone, setPhotoDone] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
@@ -244,19 +244,23 @@ function SpotDetailPage() {
     });
 
     let unsubscribeUser: (() => void) | undefined;
-    if (lineProfile) {
-      const myTodayQ = query(
-        collection(db, "photos"),
-        where("spotId", "==", spotId),
-        where("userId", "==", lineProfile.userId),
-        where("createdAt", ">=", Timestamp.fromDate(todayStart)),
-        orderBy("createdAt", "desc"),
-        limit(1)
-      );
-      unsubscribeUser = onSnapshot(myTodayQ, (snap) => {
-        setUserPostedToday(!snap.empty);
+    liff.getProfile()
+      .then((profile) => {
+        const myTodayQ = query(
+          collection(db, "photos"),
+          where("spotId", "==", spotId),
+          where("userId", "==", profile.userId),
+          where("createdAt", ">=", Timestamp.fromDate(todayStart)),
+          orderBy("createdAt", "desc"),
+          limit(MAX_USER_PHOTOS_PER_SPOT)
+        );
+        unsubscribeUser = onSnapshot(myTodayQ, (snap) => {
+          setUserPhotoCount(snap.size);
+        });
+      })
+      .catch(() => {
+        // 匿名ユーザーは1日1回制限なし
       });
-    }
 
     return () => {
       unsubscribe();
@@ -286,11 +290,11 @@ function SpotDetailPage() {
     if (!spot || photoUploading) return;
 
     if (allPhotosCount >= MAX_PHOTOS_PER_SPOT) {
-      alert(`このスポットの写真は最大${MAX_PHOTOS_PER_SPOT}枚までです。`);
+      alert(`このスポットの写真は1日最大${MAX_PHOTOS_PER_SPOT}枚までです。`);
       return;
     }
-    if (userPostedToday) {
-      alert("本日はすでに写真を投稿済みです。");
+    if (userPhotoCount >= MAX_USER_PHOTOS_PER_SPOT) {
+      alert(`本日はすでに${MAX_USER_PHOTOS_PER_SPOT}枚投稿済みです。`);
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -330,19 +334,19 @@ function SpotDetailPage() {
         isAnonymous,
         createdAt: Timestamp.now(),
       };
-      const docRef = await addDoc(collection(db, "photos"), photoData);
+      const uploadPhotoFn = httpsCallable<
+        { spotId: string; imageUrl: string; displayName: string; isAnonymous: boolean; lineUserId?: string },
+        { success: boolean; photoId: string }
+      >(functions, "uploadPhoto");
+      const result = await uploadPhotoFn({
+        spotId: spot.id,
+        imageUrl,
+        displayName,
+        isAnonymous,
+        lineUserId: isAnonymous ? undefined : userId,
+      });
 
-      if (!isAnonymous) {
-        await setDoc(
-          doc(db, "users", userId),
-          { totalPoints: increment(Hop_Photo_Points), displayName },
-          { merge: true }
-        );
-      }
-
-      setTodayPhotos((prev) => [{ id: docRef.id, ...photoData }, ...prev]);
-      setAllPhotosCount((prev) => prev + 1);
-      setUserPostedToday(true);
+      setTodayPhotos((prev) => [{ id: result.data.photoId, ...photoData }, ...prev]);
       setPhotoDone(true);
     } catch (e) {
       console.error("写真アップロードエラー:", e);
@@ -386,7 +390,7 @@ function SpotDetailPage() {
         iconBgColor="bg-[#2563eb]"
         title="写真を投稿しました！"
         spotName={spot.name}
-        points={Hop_Photo_Points}
+        points={1}
         subLabel="写真を保存しました"
         buttonLabel="スポットに戻る"
         onButton={() => setPhotoDone(false)}
@@ -477,8 +481,8 @@ function SpotDetailPage() {
             fromMap={fromMap}
             loading={loading}
             photoUploading={photoUploading}
-            photosAtLimit={allPhotosCount >= MAX_PHOTOS_PER_SPOT || userPostedToday}
-            userPostedToday={userPostedToday}
+            photosAtLimit={allPhotosCount >= MAX_PHOTOS_PER_SPOT || userPhotoCount >= MAX_USER_PHOTOS_PER_SPOT}
+            userPostedToday={userPhotoCount >= MAX_USER_PHOTOS_PER_SPOT}
             allPhotosCount={allPhotosCount}
             onWater={handleWater}
             onPhotoPress={() => setPhotoModalOpen(true)}

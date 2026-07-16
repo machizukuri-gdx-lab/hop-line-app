@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, onSnapshot } from "firebase/firestore";
 import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
@@ -61,12 +61,7 @@ function SpotPopup({ spot, onClose }: { spot: Spot; onClose: () => void }) {
 
 function MapMarker({ spot }: { spot: Spot }) {
   const isRainy = spot.weather?.isRainy ?? false;
-
-  const effectivelyDone = isRainy || spot.wateredToday;
-  const color = effectivelyDone ? "#2dc75c" : "#ef4444";
-  const markerIcon: ReactNode = effectivelyDone
-    ? <Droplet size={14} fill="white" />
-    : <X size={14} strokeWidth={3} />;
+  const color = spot.wateredToday || isRainy ? "#2dc75c" : "#ef4444";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}>
@@ -85,7 +80,11 @@ function MapMarker({ spot }: { spot: Spot }) {
         }}
       >
         <div style={{ transform: "rotate(45deg)", color: "white" }}>
-          {markerIcon}
+          {spot.wateredToday || isRainy ? (
+            <Droplet size={14} fill="white" />
+          ) : (
+            <X size={14} strokeWidth={3} />
+          )}
         </div>
       </div>
       <div
