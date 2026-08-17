@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, where, getDocs } from "firebase/firestore";
 import { User } from "lucide-react";
 import liff from "@line/liff";
 import { db } from "../firebase";
@@ -10,7 +10,6 @@ interface RankingUser {
   id: string;
   displayName: string;
   totalPoints: number;
-  wateredCount: number;
   pictureUrl?: string;
 }
 
@@ -61,8 +60,8 @@ function RankingPage() {
 
         const q = query(
           collection(db, "users"),
-          orderBy("totalPoints", "desc"),
-          limit(20)
+          where("totalPoints", ">=", 1),
+          orderBy("totalPoints", "desc")
         );
         const snap = await getDocs(q);
         setUsers(
@@ -132,7 +131,6 @@ function RankingPage() {
                 <span className="ml-1 text-xs text-[#2dc75c] font-normal">（あなた）</span>
               )}
             </p>
-            <p className="text-xs text-gray-400">{user.wateredCount ?? 0} 回</p>
           </div>
           <p className="text-amber-500 font-bold text-base shrink-0">
             {(user.totalPoints ?? 0).toLocaleString()} pt

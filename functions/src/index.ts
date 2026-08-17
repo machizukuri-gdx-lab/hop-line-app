@@ -63,9 +63,9 @@ export const recordWatering = onCall<RecordWateringData>(
   }
 );
 
-// 毎日 JST 0:00 (UTC 15:00) に全スポットのステータスをリセット
+// 毎日 JST 4:00 (UTC 19:00) と JST 16:00 (UTC 7:00) に全スポットのステータスをリセット
 export const resetDailyStatus = onSchedule(
-  { schedule: "0 15 * * *", timeZone: "UTC", region: "asia-northeast1" },
+  { schedule: "0 19,7 * * *", timeZone: "UTC", region: "asia-northeast1" },
   async () => {
     const spotsSnap = await db.collection("spots").get();
     const batch = db.batch();
